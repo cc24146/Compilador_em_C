@@ -1,0 +1,15 @@
+program exemplo
+var x
+var y
+begin
+x := 10
+y := 20
+if x < y then
+begin
+x := x + 1
+end
+while x > 0 do
+begin
+x := x - 1
+end
+end.
