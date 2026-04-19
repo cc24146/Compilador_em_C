@@ -25,5 +25,6 @@ extern char *palavras[];
 token analex(char *palavra);
 int qualNumero(char *str);
 char *qualId(char *id);
+char *proxToken(char *src, int *pos, char *buf);
 
 #endif

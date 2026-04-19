@@ -29,32 +29,76 @@ char *palavras[NUM_PALAVRAS] = {
 int main(){
     FILE *file;
     file = fopen("exemplo.txt", "r");
-
     if (file == NULL){
-        printf("Erro ao abrir o arquivo");
+        printf("Erro ao abrir o arquivo\n");
         return 1;
     }
+
     char linha[MAX_COMPRIMENTO];
+    int numLinha = 0;
 
     while (fgets(linha, MAX_COMPRIMENTO, file) != NULL) {
-        char *palavra = strtok(linha, " \t\n");
+    int pos = 0;
+    char buf[MAX_COMPRIMENTO];
+    char *palavra;
 
-        while (palavra != NULL) {
+        while ((palavra = proxToken(linha, &pos, buf)) != NULL) {
             token t = analex(palavra);
-
             if (t == numero) {
-                int val = qualNumero(palavra);  // eh numero
-            } else if (t == identificador) {    // eh identificador
+                int val = qualNumero(palavra);
+            } else if (t == identificador) {
                 char *id = qualId(palavra);
-            } else {                            // eh palavra
-
+            } else {
+                // palavra reservada ou símbolo
             }
-            palavra = strtok(NULL, " \t\n");
         }
     }
 
     fclose(file);
     return 0;
+}
+
+
+// src é a linha inteira
+// pos é o índice do caractere atual da linha
+// buf é o buffer onde o token será excrito
+
+char *proxToken(char *src, int *pos, char *buf){
+
+    while (src[*pos] && isspace(src[*pos])) // pula espaços
+        (*pos)++;
+    
+    if(!src[*pos])
+        return NULL;
+    
+    int start = *pos;   // guarda onde o token começa 
+    int i = 0;          // índice de escrita no buf
+    char c = src[*pos]; // caractere atual
+    if (isdigit((unsigned char)c)) {
+    while (isdigit((unsigned char)src[*pos])) buf[i++] = src[(*pos)++];
+    }
+
+    else if (isalpha(c) || c == '_') {
+        while (isalnum(src[*pos]) || src[*pos] == '_'){
+            buf[i++] = src[(*pos)++];
+        }
+    }
+
+    else if ((c == ':' && src[*pos+1] == '=') ||
+            (c == '<' && src[*pos+1] == '>') ||
+            (c == '<' && src[*pos+1] == '=') ||
+            (c == '>' && src[*pos+1] == '=')) {
+        buf[i++] = src[(*pos)++];  // lê 1º caractere
+        buf[i++] = src[(*pos)++];  // lê 2º caractere
+    }
+
+
+    else {
+        buf[i++] = src[(*pos)++];
+    }
+
+    buf[i] = '\0';
+    return buf;
 }
 
 token analex(char *palavra) {
