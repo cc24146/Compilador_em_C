@@ -1,2 +1,2 @@
 # Compilador_em_C
-Compilador em c
+Trabalho escolar para fazer um compilador de Pascal em C.
