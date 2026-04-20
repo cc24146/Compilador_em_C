@@ -26,7 +26,7 @@ end.
 
 =======================================================================
 expectativa: compile corretamente
-realidade: Esperava-se um identificador apos 'var'!
+realidade: Esperava-se um identificador apos 'var'! erro em compila_bloco
 =======================================================================
 
 
@@ -48,12 +48,11 @@ end.
 
 =======================================================================
 expectativa: compile corretamente
-realidade: Esperava-se um numero!
+realidade: Esperava-se um numero! erro em compila_fator
 =======================================================================
 
 
 program erroParametros(input);
-{ ERRO: Esqueceu os dois pontos ou o tipo no parametro }
 procedure soma(x : integer; y); 
 begin
     x := x + y;
@@ -65,29 +64,29 @@ end.
 
 =======================================================================
 expectativa: de erro nos parametros 
-realidade: Esperava-se 'begin'
+realidade: Esperava-se ':' apos identificadores! erro em compila_parametros_formais
 =======================================================================
 
 
 program erroPonto(input);
 begin
     x := 10;
-end; { ERRO: Deveria ser ponto final '.' e não ';' no fim do programa }
+end;
 
 =======================================================================
 expectativa: erro na estrutura do bloco 
-realidade: Esperava-se um numero!
+realidade: Esperava-se um numero! erro em compila_fator
 =======================================================================
 
 
 program erroAtribuicao(input);
 var x : integer;
 begin
-    x = 10 + 5; { ERRO: Em Pascal atribuição é ':=' e não '=' }
+    x = 10 + 5; 
 end.
 
 =======================================================================
-expectativa: erro na atribuicao de 
+expectativa: erro na atribuicao
 realidade: console irresponsivo
 =======================================================================
 
@@ -95,11 +94,11 @@ realidade: console irresponsivo
 program erroParenteses(input);
 var x : integer;
 begin
-    x := (5 + 2 * (3 - 1); { ERRO: Falta fechar um parênteses }
+    x := (5 + 2 * (3 - 1); 
 end.
 
 =======================================================================
 expectativa: erro na expressao 
-realidade: Esperava-se ':' apos numero!
+realidade: Esperava-se ':' apos numero! erro em compila_comando
 =======================================================================
 

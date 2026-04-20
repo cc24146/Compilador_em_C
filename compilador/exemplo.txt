@@ -1,5 +1,24 @@
-program erroParenteses(input);
-var x : integer;
+program testeCompleto(input, output);
+label 10, 20;
+type
+    inteiro = integer;
+var
+    x, y, resultado : inteiro;
+    ok : boolean;
+
+procedure calcular(var a : inteiro; b : inteiro);
 begin
-    x := (5 + 2 * (3 - 1); { ERRO: Falta fechar um parênteses }
+    if b <> 0 then
+        a := a * b
+    else
+        goto 10;
+end;
+
+begin
+    x := 10;
+    y := 5;
+    calcular(x, y);
+    10: 
+    while x > 0 do
+        x := x - 1;
 end.
