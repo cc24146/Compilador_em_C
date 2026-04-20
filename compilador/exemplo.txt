@@ -1,5 +1,7 @@
-program erroParenteses(input);
-var x : integer;
+program testeParametrosMultiplos(input);
+procedure p(a, b : integer; c : integer);
 begin
-    x := (5 + 2 * (3 - 1); 
+end;
+
+begin
 end.

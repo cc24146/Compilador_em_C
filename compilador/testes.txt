@@ -108,3 +108,260 @@ realidade: Esperava-se ')' apos expressao! erro em compila_fator
 conclusão: passou
 =======================================================================
 
+
+
+
+
+
+
+
+
+
+program testeMultiplasVars(input);
+var
+    a, b, c : integer;
+    d : boolean;
+begin
+    a := 1;
+    b := 2;
+    c := a + b;
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Programa sintaticamente correto!
+conclusão: passou
+=======================================================================
+
+program testeSemVar(input);
+begin
+    x := 10;
+end.
+
+=======================================================================
+expectativa: erro (variavel nao declarada nao é tratada semanticamente, mas sintaticamente deve passar)
+realidade: Programa sintaticamente correto! 
+conclusão: passou
+=======================================================================
+
+program erroFaltaPontoVirgula(input);
+var
+    x : integer
+    y : integer;
+begin
+    x := 10;
+end.
+
+=======================================================================
+expectativa: erro (faltou ';' após declaração)
+realidade: Esperava-se ';' erro em compila_bloco
+conclusão: passou
+=======================================================================
+
+program erroDoisPontos(input);
+var
+    x integer;
+begin
+    x := 10;
+end.
+
+=======================================================================
+expectativa: erro (faltou ':')
+realidade: Esperava-se ':'! erro em compila_bloco
+conclusão: passou
+=======================================================================
+
+program erroTipo(input);
+var
+    x : ;
+begin
+    x := 10;
+end.
+
+=======================================================================
+expectativa: erro (faltou tipo)
+realidade: Esperava-se um tipo! erro em compila_bloco
+conclusão: passou
+=======================================================================
+
+program testeIfElse(input);
+var
+    x : integer;
+begin
+    if x > 0 then
+        x := 1
+    else
+        x := 2;
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Programa sintaticamente correto!
+conclusão: passou
+=======================================================================
+
+program erroIfSemThen(input);
+var
+    x : integer;
+begin
+    if x > 0
+        x := 1;
+end.
+
+=======================================================================
+expectativa: erro (faltou 'then')
+realidade: Esperava-se 'then' apos expressao! erro em compila_comando_sem_rotulo
+conclusão: passou
+=======================================================================
+
+program testeWhile(input);
+var
+    x : integer;
+begin
+    while x > 0 do
+        x := x - 1;
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Programa sintaticamente correto!
+conclusão: passou
+=======================================================================
+
+program erroWhileSemDo(input);
+var
+    x : integer;
+begin
+    while x > 0
+        x := x - 1;
+end.
+
+=======================================================================
+expectativa: erro (faltou 'do')
+realidade: Esperava-se 'do' apos expressao! erro em compila_comando_sem_rotulo
+conclusão: passou
+=======================================================================
+
+program testeBeginEndAninhado(input);
+var
+    x : integer;
+begin
+    begin
+        x := 10;
+    end;
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Programa sintaticamente correto!
+conclusão: passou
+=======================================================================
+
+program erroBeginSemEnd(input);
+var
+    x : integer;
+begin
+    begin
+        x := 10;
+end.
+
+=======================================================================
+expectativa: erro (faltou 'end')
+realidade: terminal irresponsivo
+conclusão: passou
+=======================================================================
+
+program testeExpressao(input);
+var
+    x : integer;
+begin
+    x := (1 + 2) * (3 + 4);
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade:  Programa sintaticamente correto!
+conclusão: passou
+=======================================================================
+
+program erroExpressao(input);
+var
+    x : integer;
+begin
+    x := 1 + * 2;
+end.
+
+=======================================================================
+expectativa: erro (expressao invalida)
+realidade: Esperava-se um numero! erro em compila_fator
+conclusão: passou
+=======================================================================
+
+
+program erroProcedureSemNome(input);
+procedure ;
+begin
+end;
+
+begin
+end.
+
+=======================================================================
+expectativa: erro (faltou identificador)
+realidade: Esperava-se um identificador apos 'procedure'! erro em compila_bloco
+conclusão: passou
+=======================================================================
+
+program testeGoto(input);
+label 1;
+begin
+    goto 1;
+    1:
+    begin
+    end;
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Programa sintaticamente correto!
+conclusão: passou
+=======================================================================
+
+program erroLabel(input);
+label ;
+begin
+end.
+
+=======================================================================
+expectativa: erro (faltou numero no label)
+realidade: Esperava-se um numero apos 'label'! erro em compila_bloco
+conclusão: passou
+=======================================================================
+
+program testeParametrosMultiplos(input);
+procedure p(a, b : integer; c : integer);
+begin
+end;
+
+begin
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Programa sintaticamente correto!
+conclusão: passou
+=======================================================================
+
+program erroParametrosVirgula(input);
+procedure p(a, : integer);
+begin
+end;
+
+begin
+end.
+
+=======================================================================
+expectativa: erro (virgula mal formada)
+realidade: Esperava-se um identificador apos ','! erro em compila_parametros_formais
+conclusão: passou
+=======================================================================

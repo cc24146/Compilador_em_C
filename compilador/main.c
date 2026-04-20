@@ -27,6 +27,7 @@ char *palavras[NUM_PALAVRAS] = {
 };
 
 int main() {
+    // guarda as informações na struct
     Analisador an;
     an.pos = 0;
     an.linha[0] = '\0';
@@ -71,27 +72,36 @@ char *separaToken(Analisador *an) {
         while (isalnum((unsigned char)an->linha[an->pos]) || an->linha[an->pos] == '_')
             an->buf[i++] = an->linha[an->pos++];
     }
-    else if (                                           // verifica se é literalmente qualquer operador lógico de dois caracteres em c (pelo menso eu acho que coloquei todos)
+    // else if (                                           // verifica se é literalmente qualquer operador lógico de dois caracteres em c (pelo menso eu acho que coloquei todos)
+    //     (c == ':' && an->linha[an->pos+1] == '=') ||
+    //     (c == '<' && an->linha[an->pos+1] == '>') ||
+    //     (c == '<' && an->linha[an->pos+1] == '=') ||
+    //     (c == '>' && an->linha[an->pos+1] == '=') ||
+    //     (c == '=' && an->linha[an->pos+1] == '=') ||
+    //     (c == '!' && an->linha[an->pos+1] == '=') ||
+    //     (c == '&' && an->linha[an->pos+1] == '&') ||
+    //     (c == '|' && an->linha[an->pos+1] == '|') ||
+    //     (c == '+' && an->linha[an->pos+1] == '+') ||
+    //     (c == '-' && an->linha[an->pos+1] == '-') ||
+    //     (c == '+' && an->linha[an->pos+1] == '=') ||
+    //     (c == '-' && an->linha[an->pos+1] == '=') ||
+    //     (c == '*' && an->linha[an->pos+1] == '=') ||
+    //     (c == '/' && an->linha[an->pos+1] == '=') ||
+    //     (c == '%' && an->linha[an->pos+1] == '=') ||
+    //     (c == '<' && an->linha[an->pos+1] == '<') ||
+    //     (c == '>' && an->linha[an->pos+1] == '>') ||
+    //     (c == '-' && an->linha[an->pos+1] == '>') 
+    // ) {
+    //     an->buf[i++] = an->linha[an->pos++];                // se for avaça duas posições
+    //     an->buf[i++] = an->linha[an->pos++];
+    // }
+    else if (
         (c == ':' && an->linha[an->pos+1] == '=') ||
         (c == '<' && an->linha[an->pos+1] == '>') ||
         (c == '<' && an->linha[an->pos+1] == '=') ||
-        (c == '>' && an->linha[an->pos+1] == '=') ||
-        (c == '=' && an->linha[an->pos+1] == '=') ||
-        (c == '!' && an->linha[an->pos+1] == '=') ||
-        (c == '&' && an->linha[an->pos+1] == '&') ||
-        (c == '|' && an->linha[an->pos+1] == '|') ||
-        (c == '+' && an->linha[an->pos+1] == '+') ||
-        (c == '-' && an->linha[an->pos+1] == '-') ||
-        (c == '+' && an->linha[an->pos+1] == '=') ||
-        (c == '-' && an->linha[an->pos+1] == '=') ||
-        (c == '*' && an->linha[an->pos+1] == '=') ||
-        (c == '/' && an->linha[an->pos+1] == '=') ||
-        (c == '%' && an->linha[an->pos+1] == '=') ||
-        (c == '<' && an->linha[an->pos+1] == '<') ||
-        (c == '>' && an->linha[an->pos+1] == '>') ||
-        (c == '-' && an->linha[an->pos+1] == '>') 
+        (c == '>' && an->linha[an->pos+1] == '=')
     ) {
-        an->buf[i++] = an->linha[an->pos++];                // se for avaça duas posições
+        an->buf[i++] = an->linha[an->pos++];
         an->buf[i++] = an->linha[an->pos++];
     }
     else {                                                  // só sobra token de 1 caractere
@@ -105,14 +115,14 @@ char *separaToken(Analisador *an) {
 token proximoToken(Analisador *an) {
     char *palavra;
 
-    while ((palavra = separaToken(an)) == NULL) {
+    while ((palavra = separaToken(an)) == NULL) { // separa o próximo token do arquivo
         if (fgets(an->linha, MAX_COMPRIMENTO, an->arquivo) == NULL)
             return fimdearquivo;
         an->pos = 0;
     }
 
-    strcpy(an->palavraAtual, palavra);
-    return analex(palavra);
+    strcpy(an->palavraAtual, palavra); // copia a string do struct para uma variavel temporaria
+    return analex(palavra);             // verifica que token que é a string selecionada
 }
 
 token analex(char *palavra) {
@@ -187,7 +197,6 @@ void compila_programa(Analisador *an) {
         exit(1);
     }
 
-    // Verifica fim de arquivo após o ponto final
     t = proximoToken(an);
     if (t != fimdearquivo) {
         printf("Esperava-se fim de arquivo após '.' erro em compila_programa\n");
@@ -225,7 +234,6 @@ void compila_bloco(Analisador *an) {
         t = proximoToken(an);
 
         while (t == identificador) {
-            // identificador já foi lido (nome do tipo)
             
             t = proximoToken(an);
             if (t != igual) {
@@ -245,7 +253,6 @@ void compila_bloco(Analisador *an) {
                 exit(1);
             }
 
-            // pega o próximo token para ver se continua ou não
             t = proximoToken(an);
         }
     }
@@ -255,7 +262,6 @@ void compila_bloco(Analisador *an) {
 
         while (t == identificador) {
 
-            // lista de identificadores: x, y, resultado
             while (1) {
                 t = proximoToken(an);
 
@@ -362,6 +368,9 @@ void compila_bloco(Analisador *an) {
         compila_comando(an, &t);
         if (t == pontoevirgula) {
             t = proximoToken(an);
+        }else if (t != fim) {
+            printf("Esperava-se ';' ou 'end' erro em compila_bloco\n");
+            exit(1);
         }
     }
 }
