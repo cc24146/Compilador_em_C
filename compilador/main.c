@@ -89,7 +89,7 @@ char *separaToken(Analisador *an) {
         (c == '%' && an->linha[an->pos+1] == '=') ||
         (c == '<' && an->linha[an->pos+1] == '<') ||
         (c == '>' && an->linha[an->pos+1] == '>') ||
-        (c == '-' && an->linha[an->pos+1] == '>')
+        (c == '-' && an->linha[an->pos+1] == '>') 
     ) {
         an->buf[i++] = an->linha[an->pos++];                // se for avaça duas posições
         an->buf[i++] = an->linha[an->pos++];
@@ -489,6 +489,10 @@ void compila_comando_sem_rotulo(Analisador *an, token *t){
             }
             *t = proximoToken(an);
         }
+        else {
+            printf("Comando invalido apos identificador! erro em compila_comando_sem_rotulo\n");
+            exit(1);
+        }
     }
     else if (*t == vapara){
         *t = proximoToken(an);
@@ -554,14 +558,11 @@ void compila_expressao(Analisador *an, token *t) {
 void compila_expressao_simples(Analisador *an, token *t){
     if (*t == mais || *t == menos){
         *t = proximoToken(an);
-        compila_termo(an, t);
     }
-    *t = proximoToken(an);
     compila_termo(an, t);
     while (*t == mais || *t == menos || *t == ou){
         *t = proximoToken(an);
         compila_termo(an, t);
-        *t = proximoToken(an);
     }
 }
 void compila_termo(Analisador *an, token *t){
@@ -608,10 +609,13 @@ void compila_fator(Analisador *an, token *t){
             printf("Esperava-se ')' apos expressao! erro em compila_fator\n");
             exit(1);
         }
+        *t = proximoToken(an);
     } else if (*t == nao){
         *t = proximoToken(an);
         compila_fator(an, t);
-    } else if (*t != numero){
+    } else if (*t == numero){       
+        *t = proximoToken(an);
+    } else {
         printf("Esperava-se um numero! erro em compila_fator\n");
         exit(1);
     }
