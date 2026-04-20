@@ -1,0 +1,105 @@
+program testeCompleto(input, output);
+label 10, 20;
+type
+    inteiro = integer;
+var
+    x, y, resultado : inteiro;
+    ok : boolean;
+
+procedure calcular(var a : inteiro; b : inteiro);
+begin
+    if b <> 0 then
+        a := a * b
+    else
+        goto 10;
+end;
+
+begin
+    x := 10;
+    y := 5;
+    calcular(x, y);
+    10: 
+    while x > 0 do
+        x := x - 1;
+end.
+
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Esperava-se um identificador apos 'var'!
+=======================================================================
+
+
+program testeFuncao(input);
+var
+    n : integer;
+
+function fatorial(n : integer) : integer;
+begin
+    if n <= 1 then
+        fatorial := 1
+    else
+        fatorial := n * fatorial(n - 1);
+end;
+
+begin
+    n := fatorial(5);
+end.
+
+=======================================================================
+expectativa: compile corretamente
+realidade: Esperava-se um numero!
+=======================================================================
+
+
+program erroParametros(input);
+{ ERRO: Esqueceu os dois pontos ou o tipo no parametro }
+procedure soma(x : integer; y); 
+begin
+    x := x + y;
+end;
+
+begin
+    soma(1, 2);
+end.
+
+=======================================================================
+expectativa: de erro nos parametros 
+realidade: Esperava-se 'begin'
+=======================================================================
+
+
+program erroPonto(input);
+begin
+    x := 10;
+end; { ERRO: Deveria ser ponto final '.' e não ';' no fim do programa }
+
+=======================================================================
+expectativa: erro na estrutura do bloco 
+realidade: Esperava-se um numero!
+=======================================================================
+
+
+program erroAtribuicao(input);
+var x : integer;
+begin
+    x = 10 + 5; { ERRO: Em Pascal atribuição é ':=' e não '=' }
+end.
+
+=======================================================================
+expectativa: erro na atribuicao de 
+realidade: console irresponsivo
+=======================================================================
+
+
+program erroParenteses(input);
+var x : integer;
+begin
+    x := (5 + 2 * (3 - 1); { ERRO: Falta fechar um parênteses }
+end.
+
+=======================================================================
+expectativa: erro na expressao 
+realidade: Esperava-se ':' apos numero!
+=======================================================================
+

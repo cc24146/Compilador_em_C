@@ -201,14 +201,14 @@ void compila_bloco(Analisador *an) {
     if (t == rotulo){
         t = proximoToken(an);
         if(t != numero){
-            printf("Esperava-se um numero apos 'label'!\n");
+            printf("Esperava-se um número após 'label'!\n");
             exit(1);
         }
         t = proximoToken(an);
         while (t == virgula){
             t = proximoToken(an);
             if (t != numero){
-                printf("Esperava-se um numero apos ','!\n");
+                printf("Esperava-se um número após ','!\n");
                 exit(1);
             }
             t = proximoToken(an);
@@ -226,12 +226,12 @@ void compila_bloco(Analisador *an) {
             t = proximoToken(an);
     
             if ( t != identificador){
-                printf("Esperava-se um identificador apos 'type'!\n");
+                printf("Esperava-se um identificador após 'type'!\n");
                 exit(1);
             }
             t = proximoToken(an);
             if ( t != igual){
-                printf("Esperava-se um '=' apos um identificador!\n");
+                printf("Esperava-se um '=' após um identificador!\n");
                 exit(1);
             }
             t = proximoToken(an);
@@ -252,14 +252,14 @@ void compila_bloco(Analisador *an) {
         do{
             t = proximoToken(an);
             if(t != identificador){
-                printf("Esperava-se um identificador apos 'var'!\n");
+                printf("Esperava-se um identificador após 'var'!\n");
                 exit(1);
             }
             t = proximoToken(an);
             while (t == virgula){
                 t = proximoToken(an);
                 if (t != identificador){
-                    printf("Esperava-se um identificador apos ','!\n");
+                    printf("Esperava-se um identificador após ','!\n");
                     exit(1);
                 }
                 t = proximoToken(an);
@@ -287,7 +287,7 @@ void compila_bloco(Analisador *an) {
         if (t == procedimento){
             t = proximoToken(an);
             if(t != identificador){
-                printf("Esperava-se um identificador apos 'procedure'!\n");
+                printf("Esperava-se um identificador após 'procedure'!\n");
                 exit(1);
             }
             t = proximoToken(an);
@@ -296,20 +296,20 @@ void compila_bloco(Analisador *an) {
                 t = proximoToken(an);
             }
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos 'procedure'!\n");
+                printf("Esperava-se ';' após 'procedure'!\n");
                 exit(1);
             }
             compila_bloco(an);
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos bloco do 'procedure'!\n");
+                printf("Esperava-se ';' após bloco do 'procedure'!\n");
                 exit(1);
             }
             t = proximoToken(an);
         } else {
             t = proximoToken(an);
             if(t != identificador){
-                printf("Esperava-se um identificador apos 'function'!\n");
+                printf("Esperava-se um identificador após 'function'!\n");
                 exit(1);
             }
             t = proximoToken(an);
@@ -318,23 +318,23 @@ void compila_bloco(Analisador *an) {
                 t = proximoToken(an);
             }
             if (t != doispontos) {
-                printf("Esperava-se ':' apos 'function'!\n");
+                printf("Esperava-se ':' após 'function'!\n");
                 exit(1);
             }
             t = proximoToken(an);
             if(t != identificador){
-                printf("Esperava-se um identificador apos ':'!\n");
+                printf("Esperava-se um identificador após ':'!\n");
                 exit(1);
             }
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos 'function'!\n");
+                printf("Esperava-se ';' após 'function'!\n");
                 exit(1);
             }
             compila_bloco(an);
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos bloco do 'function'!\n");
+                printf("Esperava-se ';' após bloco do 'function'!\n");
                 exit(1);
             }
             t = proximoToken(an);
@@ -372,13 +372,13 @@ void compila_parametros_formais(Analisador *an){
             while (t == virgula) {
                 t = proximoToken(an);
                 if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','!\n");
+                    printf("Esperava-se um identificador após ','!\n");
                     exit(1);
                 }
                 t = proximoToken(an);
             }
             if (t != doispontos) {
-                printf("Esperava-se ':' apos identificadores!\n");
+                printf("Esperava-se ':' após identificadores!\n");
                 exit(1);
             }
             t = proximoToken(an);
@@ -392,25 +392,25 @@ void compila_parametros_formais(Analisador *an){
         else if (t == funcao) {
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um identificador apos 'function'!\n");
+                printf("Esperava-se um identificador após 'function'!\n");
                 exit(1);
             }
             t = proximoToken(an);
             while (t == virgula) {
                 t = proximoToken(an);
                 if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','!\n");
+                    printf("Esperava-se um identificador após ','!\n");
                     exit(1);
                 }
                 t = proximoToken(an);
             }
             if (t != doispontos) {
-                printf("Esperava-se ':' apos identificadores!\n");
+                printf("Esperava-se ':' após identificadores!\n");
                 exit(1);
             }
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um identificador apos ':'!\n");
+                printf("Esperava-se um identificador após ':'!\n");
                 exit(1);
             }
             t = proximoToken(an);
@@ -419,14 +419,14 @@ void compila_parametros_formais(Analisador *an){
         else if (t == procedimento) {
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um identificador apos 'procedure'!\n");
+                printf("Esperava-se um identificador após 'procedure'!\n");
                 exit(1);
             }
             t = proximoToken(an);
             while (t == virgula) {
                 t = proximoToken(an);
                 if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','!\n");
+                    printf("Esperava-se um identificador após ','!\n");
                     exit(1);
                 }
                 t = proximoToken(an);
@@ -434,14 +434,14 @@ void compila_parametros_formais(Analisador *an){
         }
 
         else {
-            printf("Esperava-se um parametro formal!\n");
+            printf("Esperava-se um parâmetro formal!\n");
             exit(1);
         }
 
     } while (t == pontoevirgula);
 
     if (t != fechaparenteses) {
-        printf("Esperava-se ')' apos o fim dos parametros!\n");
+        printf("Esperava-se ')' após o fim dos parâmetros!\n");
         exit(1);
     }
 }
@@ -450,7 +450,7 @@ void compila_comando(Analisador *an, token *t){
     while (*t == numero){
         *t = proximoToken(an);
         if (*t != doispontos){
-            printf("Esperava-se ':' apos numero!\n");
+            printf("Esperava-se ':' após número!\n");
             exit(1);
         }
         *t = proximoToken(an);
@@ -469,7 +469,7 @@ void compila_comando_sem_rotulo(Analisador *an, token *t){
                 compila_expressao(an, t);
             }
             if (*t != fechacolchetes){
-                printf("Esperava-se um ']' apos a expressao!\n");
+                printf("Esperava-se um ']' após a expressão!\n");
                 exit(1);
             }
             *t = proximoToken(an);
@@ -493,7 +493,7 @@ void compila_comando_sem_rotulo(Analisador *an, token *t){
     else if (*t == vapara){
         *t = proximoToken(an);
         if (*t != numero){
-            printf("Esperava-se um numero apos 'goto'!\n");
+            printf("Esperava-se um numero após 'goto'!\n");
             exit(1);
         }
         *t = proximoToken(an);
@@ -516,7 +516,7 @@ void compila_comando_sem_rotulo(Analisador *an, token *t){
         *t = proximoToken(an);
         compila_expressao(an, t);
         if (*t != entao){
-            printf("Esperava-se 'then' apos expressao!\n");
+            printf("Esperava-se 'then' após expressão!\n");
             exit(1);
         }
         *t = proximoToken(an);
@@ -530,7 +530,7 @@ void compila_comando_sem_rotulo(Analisador *an, token *t){
         *t = proximoToken(an);
         compila_expressao(an, t);
         if (*t != faca){
-            printf("Esperava-se 'do' apos expressao!\n");
+            printf("Esperava-se 'do' após expressão!\n");
             exit(1);
         }
         *t = proximoToken(an);
@@ -585,7 +585,7 @@ void compila_fator(Analisador *an, token *t){
                 compila_expressao(an, t);
             }
             if (*t != fechacolchetes){
-                printf("Esperava-se um ']' apos a expressao!\n");
+                printf("Esperava-se um ']' após a expressão!\n");
                 exit(1);
             }
             *t = proximoToken(an);
@@ -605,14 +605,14 @@ void compila_fator(Analisador *an, token *t){
         *t = proximoToken(an);
         compila_expressao(an, t);
         if(*t != fechaparenteses){
-            printf("Esperava-se ')' apos expressao!\n");
+            printf("Esperava-se ')' após expressão!\n");
             exit(1);
         }
     } else if (*t == nao){
         *t = proximoToken(an);
         compila_fator(an, t);
     } else if (*t != numero){
-        printf("Esperava-se um numero!\n");
+        printf("Esperava-se um número!\n");
         exit(1);
     }
 }

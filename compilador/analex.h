@@ -38,11 +38,11 @@ void compila_programa(Analisador *an);
 token proximoToken(Analisador *an);
 void compila_bloco(Analisador *an);
 void compila_parametros_formais(Analisador *an);
-void compila_comando(Analisador *an, token t);
-void compila_comando_sem_rotulo(Analisador *an);
-void compila_expressao(Analisador *an);
-void compila_expressao_simples(Analisador *an);
-void compila_termo(Analisador *an);
-void compila_fator(Analisador *an);
+void compila_comando(Analisador *an, token *t);
+void compila_comando_sem_rotulo(Analisador *an, token *t);
+void compila_expressao(Analisador *an, token *t);
+void compila_expressao_simples(Analisador *an, token *t);
+void compila_termo(Analisador *an, token *t);
+void compila_fator(Analisador *an, token *t);
 
 #endif
