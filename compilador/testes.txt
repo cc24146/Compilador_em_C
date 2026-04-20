@@ -26,8 +26,8 @@ end.
 
 =======================================================================
 expectativa: compile corretamente
-realidade: Esperava-se um identificador apos 'var'! erro em compila_bloco
-conclusão: não passou
+realidade: Programa sintaticamente correto!
+conclusão: passou
 =======================================================================
 
 

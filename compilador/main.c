@@ -221,66 +221,74 @@ void compila_bloco(Analisador *an) {
         t = proximoToken(an);
     }
 
-    if (t == tipo){
-        do{
+    if (t == tipo) {
+        t = proximoToken(an);
+
+        while (t == identificador) {
+            // identificador já foi lido (nome do tipo)
+            
             t = proximoToken(an);
-    
-            if ( t != identificador){
-                printf("Esperava-se um identificador apos 'type'! erro em compila_bloco\n");
-                exit(1);
-            }
-            t = proximoToken(an);
-            if ( t != igual){
+            if (t != igual) {
                 printf("Esperava-se um '=' apos um identificador! erro em compila_bloco\n");
                 exit(1);
             }
+
             t = proximoToken(an);
-            if ( t != identificador){
+            if (t != identificador) {
                 printf("Esperava-se um tipo! erro em compila_bloco\n");
                 exit(1);
             }
+
             t = proximoToken(an);
             if (t != pontoevirgula) {
                 printf("Esperava-se ';' erro em compila_bloco\n");
                 exit(1);
             }
+
+            // pega o próximo token para ver se continua ou não
             t = proximoToken(an);
-        }while(t == identificador);
+        }
     }
 
-    if (t == variavel){
-        do{
-            t = proximoToken(an);
-            if(t != identificador){
-                printf("Esperava-se um identificador apos 'var'! erro em compila_bloco\n");
-                exit(1);
-            }
-            t = proximoToken(an);
-            while (t == virgula){
+    if (t == variavel) {
+        t = proximoToken(an);
+
+        while (t == identificador) {
+
+            // lista de identificadores: x, y, resultado
+            while (1) {
                 t = proximoToken(an);
-                if (t != identificador){
-                    printf("Esperava-se um identificador apos ','! erro em compila_bloco\n");
-                    exit(1);
+
+                if (t == virgula) {
+                    t = proximoToken(an);
+                    if (t != identificador) {
+                        printf("Esperava-se um identificador apos ','! erro em compila_bloco\n");
+                        exit(1);
+                    }
+                } else {
+                    break;
                 }
-                t = proximoToken(an);
             }
-            if(t != doispontos){
+
+            if (t != doispontos) {
                 printf("Esperava-se ':'! erro em compila_bloco\n");
                 exit(1);
             }
+
             t = proximoToken(an);
-            if ( t != identificador){
+            if (t != identificador) {
                 printf("Esperava-se um tipo! erro em compila_bloco\n");
                 exit(1);
             }
+
             t = proximoToken(an);
             if (t != pontoevirgula) {
                 printf("Esperava-se ';' erro em compila_bloco\n");
                 exit(1);
             }
-            t = proximoToken(an);
 
-        }while(t == identificador);
+            t = proximoToken(an);
+        }
     }
 
     while (t == procedimento || t == funcao) {
