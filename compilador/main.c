@@ -28,7 +28,7 @@ char *palavras[NUM_PALAVRAS] = {
 
 int main() {
     // guarda as informações na struct
-    Analisador an;
+    estruturaAux an;
     an.pos = 0;
     an.linha[0] = '\0';
     an.palavraAtual[0] = '\0';
@@ -54,7 +54,7 @@ int main() {
 // buf é o buffer onde o token será excrito
 // as setinhas são ponteiros usados para acessar cada membro da struct já que ela foi passada como ponteiro no parâmetro
 
-char *separaToken(Analisador *an) {
+char *copiaUmToken(estruturaAux *an) {
     while (an->linha[an->pos] && isspace((unsigned char)an->linha[an->pos]))    // pula espaços até acahr qualquer caractere
         an->pos++;
 
@@ -68,8 +68,8 @@ char *separaToken(Analisador *an) {
         while (isdigit((unsigned char)an->linha[an->pos]))
             an->buf[i++] = an->linha[an->pos++];            // pega todos números um do lado do outro
     }
-    else if (isalpha((unsigned char)c) || c == '_') {       // se começa com letra ou com underline lê até não ser nenhum dos dois ou algum número
-        while (isalnum((unsigned char)an->linha[an->pos]) || an->linha[an->pos] == '_')
+    else if (isalpha((unsigned char)c)) {       // se começa com letra lê até não ser ou algum número
+        while (isalnum((unsigned char)an->linha[an->pos]))
             an->buf[i++] = an->linha[an->pos++];
     }
     // else if (                                           // verifica se é literalmente qualquer operador lógico de dois caracteres em c (pelo menso eu acho que coloquei todos)
@@ -107,15 +107,14 @@ char *separaToken(Analisador *an) {
     else {                                                  // só sobra token de 1 caractere
         an->buf[i++] = an->linha[an->pos++];
     }
-
     an->buf[i] = '\0';                                      // fecha a string para não dar problema depois 
     return an->buf;                                         // retorna só uma "palavra"
 }
 
-token proximoToken(Analisador *an) {
+token proximoToken(estruturaAux *an) {
     char *palavra;
 
-    while ((palavra = separaToken(an)) == NULL) { // separa o próximo token do arquivo
+    while ((palavra = copiaUmToken(an)) == NULL) { // separa o próximo token do arquivo
         if (fgets(an->linha, MAX_COMPRIMENTO, an->arquivo) == NULL)
             return fimdearquivo;
         an->pos = 0;
@@ -151,7 +150,7 @@ char *qualId(char *id) {
 }
 
 
-void compila_programa(Analisador *an) {
+void compila_programa(estruturaAux *an) {
     token t = proximoToken(an);
     if (t != programa) {
         printf("Esperava-se a palavra PROGRAM! erro em compila_programa\n");
@@ -205,7 +204,8 @@ void compila_programa(Analisador *an) {
 
     printf("Programa sintaticamente correto!\n");
 }
-void compila_bloco(Analisador *an) {
+
+void compila_bloco(estruturaAux *an) {
     token t = proximoToken(an);
     if (t == rotulo){
         t = proximoToken(an);
@@ -375,7 +375,7 @@ void compila_bloco(Analisador *an) {
     }
 }
 
-void compila_parametros_formais(Analisador *an){
+void compila_parametros_formais(estruturaAux *an){
     token t;
     do {
         t = proximoToken(an);
@@ -463,7 +463,7 @@ void compila_parametros_formais(Analisador *an){
     }
 }
 
-void compila_comando(Analisador *an, token *t){
+void compila_comando(estruturaAux *an, token *t){
     while (*t == numero){
         *t = proximoToken(an);
         if (*t != doispontos){
@@ -475,7 +475,7 @@ void compila_comando(Analisador *an, token *t){
     compila_comando_sem_rotulo(an, t);
 }
 
-void compila_comando_sem_rotulo(Analisador *an, token *t){
+void compila_comando_sem_rotulo(estruturaAux *an, token *t){
     if (*t == identificador){
         *t = proximoToken(an);
         if (*t == abrecolchetes){
@@ -559,7 +559,7 @@ void compila_comando_sem_rotulo(Analisador *an, token *t){
     }
 }
 
-void compila_expressao(Analisador *an, token *t) {
+void compila_expressao(estruturaAux *an, token *t) {
     compila_expressao_simples(an, t);
 
     if (*t == igual    || *t == diferente ||
@@ -572,7 +572,7 @@ void compila_expressao(Analisador *an, token *t) {
     }
 }
 
-void compila_expressao_simples(Analisador *an, token *t){
+void compila_expressao_simples(estruturaAux *an, token *t){
     if (*t == mais || *t == menos){
         *t = proximoToken(an);
     }
@@ -582,7 +582,8 @@ void compila_expressao_simples(Analisador *an, token *t){
         compila_termo(an, t);
     }
 }
-void compila_termo(Analisador *an, token *t){
+
+void compila_termo(estruturaAux *an, token *t){
     compila_fator(an, t);
 
     while (*t == vezes || *t == dividir || *t == e){
@@ -592,7 +593,7 @@ void compila_termo(Analisador *an, token *t){
     }
 }
 
-void compila_fator(Analisador *an, token *t){
+void compila_fator(estruturaAux *an, token *t){
     if (*t == identificador){
         *t = proximoToken(an);
         if (*t == abrecolchetes){
@@ -637,7 +638,3 @@ void compila_fator(Analisador *an, token *t){
         exit(1);
     }
 }
-
-
-
-

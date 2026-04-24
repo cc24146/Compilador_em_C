@@ -20,12 +20,12 @@ typedef enum {
 } token;
 
 typedef struct {    // struct para não ter que mandar tudo individualmente por parâmetros toda vez
-    FILE *arquivo;
     char linha[MAX_COMPRIMENTO];
     int pos;
-    char buf[MAX_COMPRIMENTO];
     char palavraAtual[MAX_COMPRIMENTO]; 
-} Analisador;
+    FILE *arquivo;
+    char buf[MAX_COMPRIMENTO];
+} estruturaAux;
 
 extern token tokens[];
 extern char *palavras[];
@@ -33,16 +33,16 @@ extern char *palavras[];
 token analex(char *palavra);
 int qualNumero(char *str);
 char *qualId(char *id);
-char *separaToken(Analisador *an);
-void compila_programa(Analisador *an);  
-token proximoToken(Analisador *an);
-void compila_bloco(Analisador *an);
-void compila_parametros_formais(Analisador *an);
-void compila_comando(Analisador *an, token *t);
-void compila_comando_sem_rotulo(Analisador *an, token *t);
-void compila_expressao(Analisador *an, token *t);
-void compila_expressao_simples(Analisador *an, token *t);
-void compila_termo(Analisador *an, token *t);
-void compila_fator(Analisador *an, token *t);
+char *separaToken(estruturaAux *an);
+void compila_programa(estruturaAux *an);  
+token proximoToken(estruturaAux *an);
+void compila_bloco(estruturaAux *an);
+void compila_parametros_formais(estruturaAux *an);
+void compila_comando(estruturaAux *an, token *t);
+void compila_comando_sem_rotulo(estruturaAux *an, token *t);
+void compila_expressao(estruturaAux *an, token *t);
+void compila_expressao_simples(estruturaAux *an, token *t);
+void compila_termo(estruturaAux *an, token *t);
+void compila_fator(estruturaAux *an, token *t);
 
 #endif
