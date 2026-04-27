@@ -1,24 +1,9 @@
-program testeCompleto(input, output);
-label 10, 20;
-type
-    inteiro = integer;
-var
-    x, y, resultado : inteiro;
-    ok : boolean;
-
-procedure calcular(var a : inteiro; b : inteiro);
+program erroParametros(input);
+procedure soma(x : integer; y); 
 begin
-    if b <> 0 then
-        a := a * b
-    else
-        goto 10;
+    x := x + y;
 end;
 
 begin
-    x := 10;
-    y := 5;
-    calcular(x, y);
-    10: 
-    while x > 0 do
-        x := x - 1;
+    soma(1, 2);
 end.
