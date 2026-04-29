@@ -28,11 +28,10 @@ typedef struct {    // struct para não ter que mandar tudo individualmente por 
 } estruturaAux;
 
 typedef enum { VARIAVEL, PROCEDIMENTO, FUNCAO, PARAMETRO } Natureza;
-typedef enum { INTEIRO, BOOLEAN, NADA } Tipo;
 
 typedef struct Simbolo {
     char nome[50];
-    Tipo tipo;
+    char tipo[50];
     Natureza natureza;
     int escopo;
     int endereco;
@@ -63,7 +62,7 @@ void compila_termo(estruturaAux *an, token *t, TabelaSimbolos *tabela);
 void compila_fator(estruturaAux *an, token *t, TabelaSimbolos *tabela);
 
 void inicializaTabela(TabelaSimbolos *tabela);
-void insereSimbolo(TabelaSimbolos *tabela, char *nome, Tipo tipo, Natureza natureza, int endereco);
+void insereSimbolo(TabelaSimbolos *tabela, char *nome, char *tipo, Natureza natureza, int endereco);
 Simbolo *buscaSimbolo(TabelaSimbolos *tabela, char *nome);
 void descartaEscopo(TabelaSimbolos *tabela);
 
