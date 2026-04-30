@@ -95,13 +95,13 @@ void descartaEscopo(TabelaSimbolos *tabela) {
 
 Natureza pegaNatureza(token t) {
     switch (t) {
-        case variavel:
+        case variavel: return VARIAVEL;
         case tipo: return VARIAVEL;
         case procedimento: return PROCEDIMENTO;
         case funcao: return FUNCAO;
         case abreparenteses: return PARAMETRO;
+        default: return -1;
     }
-    return -1; // valor inválido para indicar erro
 }
 
 // linha é a linha inteira
