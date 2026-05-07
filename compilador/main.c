@@ -321,17 +321,16 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
         Natureza n = pegaNatureza(t);
         t = proximoToken(an);
 
-        char tamanho = 10; // valor provisório
+        int tamanho = 10; // valor provisório
         char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 10 nomes
-        for (int i = 0; i < tamanho; i++) {
-            nomes[i] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
-        }
-        char contador = 0;
+
+        int contador = 0;
         while (t == identificador) {
-            if (contador < tamanho) {
+            if (contador >= tamanho) {
                 tamanho *= 2;
                 nomes = (char **)realloc(nomes, tamanho * sizeof(char *)); // Realoca memória para o dobro de nomes
             }
+            nomes[contador] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
             strcpy(nomes[contador], qualId(an->palavraAtual));
             contador++;
             while (1) {
@@ -481,18 +480,18 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
             t = proximoToken(an);
         }
 
-        char tamanho = 10; // valor provisório
+        int tamanho = 10; // valor provisório
         char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 10 nomes
         for (int i = 0; i < tamanho; i++) {
             nomes[i] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
         }
-        char contador = 0;
+        int contador = 0;
         if (t == identificador) {
             strcpy(nomes[contador], qualId(an->palavraAtual));
             contador++;
             t = proximoToken(an);
             while (t == virgula) {
-                if (contador < tamanho) {
+                if (contador >= tamanho) {
                     tamanho *= 2;
                     nomes = (char **)realloc(nomes, tamanho * sizeof(char *)); // Realoca memória para o dobro de nomes
                 }
@@ -534,18 +533,18 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
                 printf("Esperava-se um identificador apos 'function'! erro em compila_parametros_formais\n");
                 exit(1);
             }
-            char tamanho = 10; // valor provisório
+            int tamanho = 10; // valor provisório
             char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 10 nomes
             for (int i = 0; i < tamanho; i++) {
                 nomes[i] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
             }
-            char contador = 0;
+            int contador = 0;
 
             strcpy(nomes[contador], qualId(an->palavraAtual));
             contador++;
             t = proximoToken(an);
             while (t == virgula) {
-                if (contador < tamanho) {
+                if (contador >= tamanho) {
                     tamanho *= 2;
                     nomes = (char **)realloc(nomes, tamanho * sizeof(char *)); // Realoca memória para o dobro de nomes
                 }
