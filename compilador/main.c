@@ -155,7 +155,9 @@ char *copiaUmToken(estruturaAux *an) {
         (c == ':' && an->linha[an->pos+1] == '=') ||
         (c == '<' && an->linha[an->pos+1] == '>') ||
         (c == '<' && an->linha[an->pos+1] == '=') ||
-        (c == '>' && an->linha[an->pos+1] == '=')
+        (c == '>' && an->linha[an->pos+1] == '=') ||
+        (c == '(' && an->linha[an->pos+1] == '*') ||
+        (c == '*' && an->linha[an->pos+1] == ')')
     ) {
         an->buf[i++] = an->linha[an->pos++];
         an->buf[i++] = an->linha[an->pos++];
@@ -167,19 +169,53 @@ char *copiaUmToken(estruturaAux *an) {
     return an->buf;                                         // retorna só uma "palavra"
 }
 
+void le_comentario(estruturaAux *an) {
+    char *palavra;
+    while (1) {
+        palavra = copiaUmToken(an);
+        
+        if (palavra == NULL) {
+            if (fgets(an->linha, MAX_COMPRIMENTO, an->arquivo) == NULL) {
+                printf("Erro: Comentario nao fechado antes do fim do arquivo!\n");
+                exit(1);
+            }
+            an->numLinha++;
+            an->pos = 0;
+            continue;
+        }
+
+        if (strcmp(palavra, "*)") == 0) {
+            return;
+        }
+    }
+}
+
 token proximoToken(estruturaAux *an) {
     char *palavra;
 
-    while ((palavra = copiaUmToken(an)) == NULL) { // separa o próximo token do arquivo
-        if (fgets(an->linha, MAX_COMPRIMENTO, an->arquivo) == NULL)
-            return fimdearquivo;
-        an->numLinha++;
-        an->pos = 0;
+    while (1) {
+        palavra = copiaUmToken(an);
+
+        if (palavra == NULL) {
+            if (fgets(an->linha, MAX_COMPRIMENTO, an->arquivo) == NULL)
+                return fimdearquivo;
+            an->numLinha++;
+            an->pos = 0;
+            continue;
+        }
+
+        if (strcmp(palavra, "(*") == 0) {
+            le_comentario(an);
+            continue;
+        }
+
+        break;
     }
 
-    strcpy(an->palavraAtual, palavra); // copia a string do struct para uma variavel temporaria
-    return analex(palavra);             // verifica que token que é a string selecionada
+    strcpy(an->palavraAtual, palavra);
+    return analex(palavra);
 }
+
 
 token analex(char *palavra) {
     for (int i = 0; i < NUM_PALAVRAS; i++) {
