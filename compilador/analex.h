@@ -25,6 +25,7 @@ typedef struct {    // struct para não ter que mandar tudo individualmente por 
     char palavraAtual[MAX_COMPRIMENTO]; 
     FILE *arquivo;
     char buf[MAX_COMPRIMENTO];
+    int numLinha;
 } estruturaAux;
 
 typedef enum { VARIAVEL, PROCEDIMENTO, FUNCAO, PARAMETRO } Natureza;
