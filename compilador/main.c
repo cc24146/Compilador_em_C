@@ -245,39 +245,39 @@ char *qualId(char *id) {
 void compila_programa(estruturaAux *an, TabelaSimbolos *tabela) {
     token t = proximoToken(an);
     if (t != programa) {
-        printf("Esperava-se a palavra PROGRAM! erro em compila_programa linha %d\n", an->numLinha);
+        printf("Esperava-se a palavra PROGRAM! erro na linha %d\n", an->numLinha);
         exit(1);
     }
 
     t = proximoToken(an);
     if (t != identificador) {
-        printf("Esperava-se um identificador após PROGRAM! erro em compila_programa linha %d\n", an->numLinha);
+        printf("Esperava-se um identificador após PROGRAM! erro na linha %d\n", an->numLinha);
         exit(1);
     }
 
     t = proximoToken(an);
     Natureza n;
     if (t != abreparenteses) {
-        printf("Esperava-se '(' erro em compila_programa linha %d\n", an->numLinha);
+        printf("Esperava-se '(' erro na linha %d\n", an->numLinha);
         exit(1);
     }
 
     do {
         t = proximoToken(an);
         if (t != identificador) {
-            printf("Esperava-se um identificador! erro em compila_programa linha %d\n", an->numLinha);
+            printf("Esperava-se um identificador! erro na linha %d\n", an->numLinha);
             exit(1);
         }
         t = proximoToken(an);
         if (t != virgula && t != fechaparenteses) {
-            printf("Esperava-se ',' ou ')' erro em compila_programa linha %d\n", an->numLinha);
+            printf("Esperava-se ',' ou ')' erro na linha %d\n", an->numLinha);
             exit(1);
         }
     } while (t == virgula);
 
     t = proximoToken(an);
     if (t != pontoevirgula) {
-        printf("Esperava-se ';' erro em compila_programa linha %d\n", an->numLinha);
+        printf("Esperava-se ';' erro na linha %d\n", an->numLinha);
         exit(1);
     }
 
@@ -287,13 +287,13 @@ void compila_programa(estruturaAux *an, TabelaSimbolos *tabela) {
 
     t = proximoToken(an);
     if (t != ponto) {
-        printf("Esperava-se '.' erro em compila_programa linha %d\n", an->numLinha);
+        printf("Esperava-se '.' erro na linha %d\n", an->numLinha);
         exit(1);
     }
 
     t = proximoToken(an);
     if (t != fimdearquivo) {
-        printf("Esperava-se fim de arquivo após '.' erro em compila_programa linha %d\n", an->numLinha);
+        printf("Esperava-se fim de arquivo após '.' erro na linha %d\n", an->numLinha);
         exit(1);
     }
 
@@ -305,21 +305,21 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
     if (t == rotulo){
         t = proximoToken(an);
         if(t != numero){
-            printf("Esperava-se um numero apos 'label'! erro em compila_bloco linha %d\n", an->numLinha);
+            printf("Esperava-se um numero apos 'label'! erro no bloco na linha %d\n", an->numLinha);
             exit(1);
         }
         t = proximoToken(an);
         while (t == virgula){
             t = proximoToken(an);
             if (t != numero){
-                printf("Esperava-se um numero apos ','! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se um numero apos ','! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             t = proximoToken(an);
         }
 
         if(t != pontoevirgula){
-            printf("Esperava-se um ';'! erro em compila_bloco linha %d\n", an->numLinha);
+            printf("Esperava-se um ';'! erro no bloco na linha %d\n", an->numLinha);
             exit(1);
         }
         t = proximoToken(an);
@@ -335,19 +335,19 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             insereSimbolo(tabela, nome, tipo, n, 0);
             t = proximoToken(an);
             if (t != igual) {
-                printf("Esperava-se um '=' apos um identificador! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se um '=' apos um identificador! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
 
             t = proximoToken(an);
             if (t != identificador && t != numero) {
-                printf("Esperava-se um tipo! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se um tipo! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
 
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ';' erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
 
@@ -377,7 +377,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 if (t == virgula) {
                     t = proximoToken(an);
                     if (t != identificador) {
-                        printf("Esperava-se um identificador apos ','! erro em compila_bloco linha %d\n", an->numLinha);
+                        printf("Esperava-se um identificador apos ','! erro no bloco na linha %d\n", an->numLinha);
                         exit(1);
                     }
                     nomes[contador] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
@@ -389,13 +389,13 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             }
 
             if (t != doispontos) {
-                printf("Esperava-se ':'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ':'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
 
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um tipo! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se um tipo! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             char *tipo = qualId(an->palavraAtual);
@@ -405,7 +405,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
 
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ';' erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
 
@@ -422,7 +422,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             Natureza n = pegaNatureza(t);
             t = proximoToken(an);
             if(t != identificador){
-                printf("Esperava-se um identificador apos 'procedure'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se um identificador apos 'procedure'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             char *nome = qualId(an->palavraAtual);
@@ -435,7 +435,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 t = proximoToken(an);
             }
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos 'procedure'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ';' apos 'procedure'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             tabela->escopoAtual++;
@@ -443,7 +443,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             descartaEscopo(tabela);
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos bloco do 'procedure'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ';' apos bloco do 'procedure'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             t = proximoToken(an);
@@ -451,7 +451,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             Natureza n = pegaNatureza(t);
             t = proximoToken(an);
             if(t != identificador){
-                printf("Esperava-se um identificador apos 'function'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se um identificador apos 'function'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             char *nome = qualId(an->palavraAtual);
@@ -463,19 +463,19 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 t = proximoToken(an);
             }
             if (t != doispontos) {
-                printf("Esperava-se ':' apos 'function'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ':' apos 'function'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             t = proximoToken(an);
             if(t != identificador){
-                printf("Esperava-se um identificador apos ':'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se um identificador apos ':'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             char *tipo = qualId(an->palavraAtual);
             insereSimbolo(tabela, nome, tipo, n, 0);
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos 'function'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ';' apos 'function'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             tabela->escopoAtual++;
@@ -483,7 +483,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             descartaEscopo(tabela);
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos bloco do 'function'! erro em compila_bloco linha %d\n", an->numLinha);
+                printf("Esperava-se ';' apos bloco do 'function'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
             t = proximoToken(an);
@@ -491,20 +491,20 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
     }
 
     if (t != inicio) {
-    printf("Esperava-se 'begin' erro em compila_bloco linha %d\n", an->numLinha);
+    printf("Esperava-se 'begin' erro no bloco na linha %d\n", an->numLinha);
     exit(1);
     }
     t = proximoToken(an);
     while (t != fim) {
         if (t == fimdearquivo) {
-            printf("Esperava-se 'end' erro em compila_bloco linha %d\n", an->numLinha);
+            printf("Esperava-se 'end' erro no bloco na linha %d\n", an->numLinha);
             exit(1);
         }
         compila_comando(an, &t, tabela);
         if (t == pontoevirgula) {
             t = proximoToken(an);
         }else if (t != fim) {
-            printf("Esperava-se ';' ou 'end' erro em compila_bloco linha %d\n", an->numLinha);
+            printf("Esperava-se ';' ou 'end' erro no bloco na linha %d\n", an->numLinha);
             exit(1);
         }
     }
@@ -533,7 +533,7 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
                 }
                 t = proximoToken(an);
                 if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                    printf("Esperava-se um identificador apos ','! erro nos parametros formais na linha %d\n", an->numLinha);
                     exit(1);
                 }
                 nomes[contador] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
@@ -542,12 +542,12 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
                 t = proximoToken(an);
             }
             if (t != doispontos) {
-                printf("Esperava-se ':' apos identificadores! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                printf("Esperava-se ':' apos identificadores! erro nos parametros formais na linha %d\n", an->numLinha);
                 exit(1);
             }
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um identificador! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                printf("Esperava-se um identificador! erro nos parametros formais na linha %d\n", an->numLinha);
                 exit(1);
             }
             char *tipo = qualId(an->palavraAtual);
@@ -567,7 +567,7 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
             Natureza n = pegaNatureza(t);
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um identificador apos 'function'! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                printf("Esperava-se um identificador apos 'function'! erro nos parametros formais na linha %d\n", an->numLinha);
                 exit(1);
             }
             int tamanho = 10; // valor provisório
@@ -587,7 +587,7 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
                 }
                 t = proximoToken(an);
                 if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                    printf("Esperava-se um identificador apos ','! erro nos parametros formais na linha %d\n", an->numLinha);
                     exit(1);
                 }
                 strcpy(nomes[contador], qualId(an->palavraAtual));
@@ -595,12 +595,12 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
                 t = proximoToken(an);
             }
             if (t != doispontos) {
-                printf("Esperava-se ':' apos identificadores! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                printf("Esperava-se ':' apos identificadores! erro nos parametros formais na linha %d\n", an->numLinha);
                 exit(1);
             }
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um identificador apos ':'! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                printf("Esperava-se um identificador apos ':'! erro nos parametros formais na linha %d\n", an->numLinha);
                 exit(1);
             }
             char *tipo = qualId(an->palavraAtual);
@@ -620,7 +620,7 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
             Natureza n = pegaNatureza(t);
             t = proximoToken(an);
             if (t != identificador) {
-                printf("Esperava-se um identificador apos 'procedure'! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                printf("Esperava-se um identificador apos 'procedure'! erro nos parametros formais na linha %d\n", an->numLinha);
                 exit(1);
             }
             char *nome = qualId(an->palavraAtual);
@@ -629,7 +629,7 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
             while (t == virgula) {
                 t = proximoToken(an);
                 if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','! erro em compila_parametros_formais linha %d\n", an->numLinha);
+                    printf("Esperava-se um identificador apos ','! erro nos parametros formais na linha %d\n", an->numLinha);
                     exit(1);
                 }
                 char *nome = qualId(an->palavraAtual);
@@ -639,14 +639,14 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
         }
 
         else {
-            printf("Esperava-se um parametro formal! erro em compila_parametros_formais linha %d\n", an->numLinha);
+            printf("Esperava-se um parametro formal! erro nos parametros formais na linha %d\n", an->numLinha);
             exit(1);
         }
 
     } while (t == pontoevirgula);
 
     if (t != fechaparenteses) {
-        printf("Esperava-se ')' apos o fim dos parametros! erro em compila_parametros_formais linha %d\n", an->numLinha);
+        printf("Esperava-se ')' apos o fim dos parametros! erro nos parametros formais na linha %d\n", an->numLinha);
         exit(1);
     }
 }
@@ -655,7 +655,7 @@ void compila_comando(estruturaAux *an, token *t, TabelaSimbolos *tabela){
     while (*t == numero){
         *t = proximoToken(an);
         if (*t != doispontos){
-            printf("Esperava-se ':' apos numero! erro em compila_comando linha %d\n", an->numLinha);
+            printf("Esperava-se ':' apos numero! erro no comando na linha %d\n", an->numLinha);
             exit(1);
         }
         *t = proximoToken(an);
@@ -675,7 +675,7 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
                 compila_expressao(an, t, tabela);
             }
             if (*t != fechacolchetes){
-                printf("Esperava-se um ']' apos a expressao! erro em compila_comando_sem_rotulo linha %d\n", an->numLinha);
+                printf("Esperava-se um ']' apos a expressao! erro no comando sem rotulo na linha %d\n", an->numLinha);
                 exit(1);
             }
             *t = proximoToken(an);
@@ -696,14 +696,14 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
             *t = proximoToken(an);
         }
         else {
-            // printf("Comando invalido apos identificador! erro em compila_comando_sem_rotulo linha %d\n", an->numLinha);
+            // printf("Comando invalido apos identificador! erro no comando sem rotulo na linha %d\n", an->numLinha);
             // exit(1);
         }
     }
     else if (*t == vapara){
         *t = proximoToken(an);
         if (*t != numero){
-            printf("Esperava-se um numero apos 'goto'! erro em compila_comando_sem_rotulo linha %d\n", an->numLinha);
+            printf("Esperava-se um numero apos 'goto'! erro no comando sem rotulo na linha %d\n", an->numLinha);
             exit(1);
         }
         *t = proximoToken(an);
@@ -712,7 +712,7 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
         *t = proximoToken(an);
         while (*t != fim) {
             if (*t == fimdearquivo) {
-                printf("Esperava-se 'end'! erro em compila_comando_sem_rotulo linha %d\n", an->numLinha);
+                printf("Esperava-se 'end'! erro no comando sem rotulo na linha %d\n", an->numLinha);
                 exit(1);
             }
             compila_comando(an, t, tabela);
@@ -726,7 +726,7 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
         *t = proximoToken(an);
         compila_expressao(an, t, tabela);
         if (*t != entao){
-            printf("Esperava-se 'then' apos expressao! erro em compila_comando_sem_rotulo linha %d\n", an->numLinha);
+            printf("Esperava-se 'then' apos expressao! erro no comando sem rotulo na linha %d\n", an->numLinha);
             exit(1);
         }
         *t = proximoToken(an);
@@ -740,7 +740,7 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
         *t = proximoToken(an);
         compila_expressao(an, t, tabela);
         if (*t != faca){
-            printf("Esperava-se 'do' apos expressao! erro em compila_comando_sem_rotulo linha %d\n", an->numLinha);
+            printf("Esperava-se 'do' apos expressao! erro no comando sem rotulo na linha %d\n", an->numLinha);
             exit(1);
         }
         *t = proximoToken(an);
@@ -793,7 +793,7 @@ void compila_fator(estruturaAux *an, token *t, TabelaSimbolos *tabela){
                 compila_expressao(an, t, tabela);
             }
             if (*t != fechacolchetes){
-                printf("Esperava-se um ']' apos a expressao! erro em compila_fator linha %d\n", an->numLinha);
+                printf("Esperava-se um ']' apos a expressao! erro no fator na linha %d\n", an->numLinha);
                 exit(1);
             }
             *t = proximoToken(an);
@@ -804,7 +804,7 @@ void compila_fator(estruturaAux *an, token *t, TabelaSimbolos *tabela){
                 compila_expressao(an, t, tabela);
             } while (*t == virgula);
             if (*t != fechaparenteses) {
-                printf("Esperava-se ')'! erro em compila_fator linha %d\n", an->numLinha);
+                printf("Esperava-se ')'! erro no fator na linha %d\n", an->numLinha);
                 exit(1);
             }
             *t = proximoToken(an);
@@ -813,7 +813,7 @@ void compila_fator(estruturaAux *an, token *t, TabelaSimbolos *tabela){
         *t = proximoToken(an);
         compila_expressao(an, t, tabela);
         if(*t != fechaparenteses){
-            printf("Esperava-se ')' apos expressao! erro em compila_fator linha %d\n", an->numLinha);
+            printf("Esperava-se ')' apos expressao! erro no fator na linha %d\n", an->numLinha);
             exit(1);
         }
         *t = proximoToken(an);
@@ -823,7 +823,7 @@ void compila_fator(estruturaAux *an, token *t, TabelaSimbolos *tabela){
     } else if (*t == numero){       
         *t = proximoToken(an);
     } else {
-        printf("Esperava-se um numero! erro em compila_fator linha %d\n", an->numLinha);
+        printf("Esperava-se um numero! erro no fator na linha %d\n", an->numLinha);
         exit(1);
     }
 }
