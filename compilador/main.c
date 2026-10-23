@@ -7,6 +7,7 @@
 #define MAX_LINHAS 100
 #define MAX_COMPRIMENTO 256
 #define NUM_PALAVRAS 36
+#define MAX_ROTULOS 100
 
 token tokens[NUM_PALAVRAS + 3] = {
     programa,rotulo,tipo,variavel,procedimento,
@@ -28,6 +29,32 @@ char *palavras[NUM_PALAVRAS] = {
 
 TabelaSimbolos tabela;
 
+typedef struct {
+    int numero;
+    int rotulo;
+} RotuloUsuario;
+
+int contadorRotulo = 0;
+
+RotuloUsuario rotulosUsuario[MAX_ROTULOS];
+int numRotulosUsuario = 0;
+
+int rotuloDoLabel(int num) {
+    for (int i = 0; i < numRotulosUsuario; i++)
+        if (rotulosUsuario[i].numero == num)
+            return rotulosUsuario[i].rotulo;
+
+    if (numRotulosUsuario >= MAX_ROTULOS) {
+        printf("Rotulos demais!\n");
+        exit(1);
+    }
+    rotulosUsuario[numRotulosUsuario].numero = num;
+    rotulosUsuario[numRotulosUsuario].rotulo = contadorRotulo++;
+    return rotulosUsuario[numRotulosUsuario++].rotulo;
+}
+
+
+
 int main() {
     // guarda as informações na struct
     estruturaAux an;
@@ -47,12 +74,20 @@ int main() {
     // Carrega a primeira linha antes de começar
     fgets(an.linha, MAX_COMPRIMENTO, an.arquivo);
 
+    an.saida = fopen("interpretador.txt", "w");
+    if(an.saida == NULL) {
+        printf("Erro ao abrir interpretador.txt");
+        return 1;
+    }
+
     // Dispara o analisador sintático
     tabela.escopoAtual++;
     compila_programa(&an, &tabela);
     descartaEscopo(&tabela);
 
     fclose(an.arquivo);
+    fclose(an.saida);
+
     return 0;
 }
 
@@ -242,6 +277,15 @@ char *qualId(char *id) {
     return id;
 }
 
+Simbolo *achaSimbolo(estruturaAux *an, TabelaSimbolos *tabela, char *nome) {
+    Simbolo *s = buscaSimbolo(tabela, nome);
+    if (s == NULL) {
+        printf("Identificador '%s' nao declarado! erro na linha %d\n", nome, an->numLinha);
+        exit(1);
+    }
+    return s;
+}
+
 void compila_programa(estruturaAux *an, TabelaSimbolos *tabela) {
     token t = proximoToken(an);
     if (t != programa) {
@@ -281,6 +325,8 @@ void compila_programa(estruturaAux *an, TabelaSimbolos *tabela) {
         exit(1);
     }
 
+    fprintf(an->saida, "INPP\n");
+
     tabela->escopoAtual++;
     compila_bloco(an, tabela);
     descartaEscopo(tabela);
@@ -297,10 +343,14 @@ void compila_programa(estruturaAux *an, TabelaSimbolos *tabela) {
         exit(1);
     }
 
+    fprintf(an->saida, "PARA\n");
+
     printf("Programa sintaticamente correto!\n");
 }
 
 void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
+    int numVars = 0;
+
     token t = proximoToken(an);
     if (t == rotulo){
         t = proximoToken(an);
@@ -363,6 +413,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
         char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 10 nomes
 
         int contador = 0;
+        
         while (t == identificador) {
             if (contador >= tamanho) {
                 tamanho *= 2;
@@ -403,6 +454,9 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 insereSimbolo(tabela, nomes[i], tipo, n, 0);
             }
 
+            fprintf(an->saida, "AMEM %d\n", contador);
+            numVars += contador;
+
             t = proximoToken(an);
             if (t != pontoevirgula) {
                 printf("Esperava-se ';' erro no bloco na linha %d\n", an->numLinha);
@@ -418,6 +472,11 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
     }
 
     while (t == procedimento || t == funcao) {
+        int rotuloPula = contadorRotulo++;
+        int rotuloEntrada = contadorRotulo++;
+
+        fprintf(an->saida, "DSVR L%d\n", rotuloPula);
+
         if (t == procedimento){
             Natureza n = pegaNatureza(t);
             t = proximoToken(an);
@@ -426,7 +485,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 exit(1);
             }
             char *nome = qualId(an->palavraAtual);
-            insereSimbolo(tabela, nome, "Nulo", n, 0);
+            insereSimbolo(tabela, nome, "Nulo", n, rotuloEntrada);
             t = proximoToken(an);
             if(t == abreparenteses){
                 tabela->escopoAtual++;
@@ -438,6 +497,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 printf("Esperava-se ';' apos 'procedure'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
+            fprintf(an->saida, "L%d:NADA\n", rotuloEntrada);
             tabela->escopoAtual++;
             compila_bloco(an, tabela);
             descartaEscopo(tabela);
@@ -478,6 +538,9 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 printf("Esperava-se ';' apos 'function'! erro no bloco na linha %d\n", an->numLinha);
                 exit(1);
             }
+
+            fprintf(an->saida, "L%d:NADA\n", rotuloEntrada);
+
             tabela->escopoAtual++;
             compila_bloco(an, tabela);
             descartaEscopo(tabela);
@@ -488,11 +551,14 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             }
             t = proximoToken(an);
         }
+
+        fprintf(an->saida, "L%d:NADA\n", rotuloPula);
+
     }
 
     if (t != inicio) {
-    printf("Esperava-se 'begin' erro no bloco na linha %d\n", an->numLinha);
-    exit(1);
+        printf("Esperava-se 'begin' erro no bloco na linha %d\n", an->numLinha);
+        exit(1);
     }
     t = proximoToken(an);
     while (t != fim) {
@@ -508,6 +574,10 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             exit(1);
         }
     }
+
+    if (numVars > 0)
+        fprintf(an->saida, "DMEM %d\n", numVars);
+
 }
 
 void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
@@ -570,8 +640,8 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
                 printf("Esperava-se um identificador apos 'function'! erro nos parametros formais na linha %d\n", an->numLinha);
                 exit(1);
             }
-            int tamanho = 10; // valor provisório
-            char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 10 nomes
+            int tamanho = 20; // valor provisório
+            char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 20 nomes
             for (int i = 0; i < tamanho; i++) {
                 nomes[i] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
             }
@@ -653,6 +723,7 @@ void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
 
 void compila_comando(estruturaAux *an, token *t, TabelaSimbolos *tabela){
     while (*t == numero){
+        fprintf(an->saida, "L%d:NADA\n", rotuloDoLabel(qualNumero(an->palavraAtual)));
         *t = proximoToken(an);
         if (*t != doispontos){
             printf("Esperava-se ':' apos numero! erro no comando na linha %d\n", an->numLinha);
@@ -681,8 +752,11 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
             *t = proximoToken(an);
         }
         if (*t == atribuicao){
+            Simbolo *s = achaSimbolo(an, tabela, nome);
             *t = proximoToken(an);
             compila_expressao(an, t, tabela);
+            if (s->natureza == VARIAVEL || s->natureza == PARAMETRO)
+                fprintf(an->saida, "ARMZ %d, %d\n", s->escopo, s->endereco);
         }
         else if (*t == abreparenteses) {
             do {
@@ -706,6 +780,7 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
             printf("Esperava-se um numero apos 'goto'! erro no comando sem rotulo na linha %d\n", an->numLinha);
             exit(1);
         }
+        fprintf(an->saida, "DSVR L%d\n", rotuloDoLabel(qualNumero(an->palavraAtual)));
         *t = proximoToken(an);
     }
     else if (*t == inicio) {
@@ -723,28 +798,43 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
         *t = proximoToken(an);
     }
     else if (*t == se){
+        int rotuloElse = contadorRotulo++;
         *t = proximoToken(an);
         compila_expressao(an, t, tabela);
         if (*t != entao){
             printf("Esperava-se 'then' apos expressao! erro no comando sem rotulo na linha %d\n", an->numLinha);
             exit(1);
         }
+        fprintf(an->saida, "DSVF L%d\n", rotuloElse);
         *t = proximoToken(an);
         compila_comando_sem_rotulo(an, t, tabela);
         if (*t == senao){
+            int rotuloFim = contadorRotulo++;
+            fprintf(an->saida, "DSVR L%d\n", rotuloFim);     // fim do then: pula o else
+            fprintf(an->saida, "L%d: NADA\n", rotuloElse);
             *t = proximoToken(an);
             compila_comando_sem_rotulo(an, t, tabela);
+            fprintf(an->saida, "L%d: NADA\n", rotuloFim);
+        } else {
+            fprintf(an->saida, "L%d: NADA\n", rotuloElse);
         }
     }
     else if (*t == enquanto){
+        int rotuloInicio = contadorRotulo++;
+        int rotuloFim = contadorRotulo++;
+        fprintf(an->saida, "L%d: NADA\n", rotuloInicio);
+
         *t = proximoToken(an);
         compila_expressao(an, t, tabela);
         if (*t != faca){
             printf("Esperava-se 'do' apos expressao! erro no comando sem rotulo na linha %d\n", an->numLinha);
             exit(1);
         }
+        fprintf(an->saida, "DSVF L%d\n", rotuloFim);
         *t = proximoToken(an);
         compila_comando_sem_rotulo(an, t, tabela);
+        fprintf(an->saida, "DSVR L%d\n", rotuloInicio);      // volta para testar de novo
+        fprintf(an->saida, "L%d: NADA\n", rotuloFim);
     }
 }
 

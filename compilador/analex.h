@@ -24,6 +24,7 @@ typedef struct {    // struct para não ter que mandar tudo individualmente por 
     int pos;
     char palavraAtual[MAX_COMPRIMENTO]; 
     FILE *arquivo;
+    FILE *saida;
     char buf[MAX_COMPRIMENTO];
     int numLinha;
 } estruturaAux;
