@@ -36,6 +36,16 @@ typedef struct {
 
 int contadorRotulo = 0;
 
+/* Declaracoes ativas permitem atribuir ao resultado da funcao envolvente. */
+static Simbolo *subprogramasAtivos[100];
+static int numSubprogramasAtivos = 0;
+
+static int funcaoAtiva(Simbolo *s) {
+    for (int i = 0; i < numSubprogramasAtivos; i++)
+        if (subprogramasAtivos[i] == s) return 1;
+    return 0;
+}
+
 RotuloUsuario rotulosUsuario[MAX_ROTULOS];
 int numRotulosUsuario = 0;
 
@@ -55,7 +65,7 @@ int rotuloDoLabel(int num) {
 
 
 
-int main() {
+int main(void) {
     // guarda as informações na struct
     estruturaAux an;
     an.pos = 0;
@@ -81,7 +91,6 @@ int main() {
     }
 
     // Dispara o analisador sintático
-    tabela.escopoAtual++;
     compila_programa(&an, &tabela);
     descartaEscopo(&tabela);
 
@@ -97,7 +106,19 @@ void inicializaTabela(TabelaSimbolos *tabela) {
 }
 
 void insereSimbolo(TabelaSimbolos *tabela, char *nome, char *tipo, Natureza natureza, int endereco) {
-    Simbolo *novoSimbolo = (Simbolo *)malloc(sizeof(Simbolo));
+    if (strlen(nome) >= sizeof(((Simbolo *)0)->nome) ||
+        strlen(tipo) >= sizeof(((Simbolo *)0)->tipo)) {
+        fprintf(stderr, "Nome ou tipo excede 49 caracteres.\n");
+        exit(1);
+    }
+    for (Simbolo *s = tabela->topo; s && s->escopo == tabela->escopoAtual; s = s->prox) {
+        if (strcmp(s->nome, nome) == 0) {
+            fprintf(stderr, "Identificador '%s' ja declarado neste escopo.\n", nome);
+            exit(1);
+        }
+    }
+    Simbolo *novoSimbolo = calloc(1, sizeof(Simbolo));
+    if (!novoSimbolo) { perror("calloc"); exit(1); }
     strcpy(novoSimbolo->nome, nome);
     strcpy(novoSimbolo->tipo, tipo);
     novoSimbolo->natureza = natureza;
@@ -132,7 +153,7 @@ void descartaEscopo(TabelaSimbolos *tabela) {
 Natureza pegaNatureza(token t) {
     switch (t) {
         case variavel: return VARIAVEL;
-        case tipo: return VARIAVEL;
+        case tipo: return TIPO;
         case procedimento: return PROCEDIMENTO;
         case funcao: return FUNCAO;
         case abreparenteses: return PARAMETRO;
@@ -300,26 +321,21 @@ void compila_programa(estruturaAux *an, TabelaSimbolos *tabela) {
     }
 
     t = proximoToken(an);
-    Natureza n;
-    if (t != abreparenteses) {
-        printf("Esperava-se '(' erro na linha %d\n", an->numLinha);
-        exit(1);
+    if (t == abreparenteses) {
+        do {
+            t = proximoToken(an);
+            if (t != identificador) {
+                fprintf(stderr, "Linha %d: esperava-se identificador no cabecalho.\n", an->numLinha);
+                exit(1);
+            }
+            t = proximoToken(an);
+        } while (t == virgula);
+        if (t != fechaparenteses) {
+            fprintf(stderr, "Linha %d: esperava-se ')'.\n", an->numLinha);
+            exit(1);
+        }
+        t = proximoToken(an);
     }
-
-    do {
-        t = proximoToken(an);
-        if (t != identificador) {
-            printf("Esperava-se um identificador! erro na linha %d\n", an->numLinha);
-            exit(1);
-        }
-        t = proximoToken(an);
-        if (t != virgula && t != fechaparenteses) {
-            printf("Esperava-se ',' ou ')' erro na linha %d\n", an->numLinha);
-            exit(1);
-        }
-    } while (t == virgula);
-
-    t = proximoToken(an);
     if (t != pontoevirgula) {
         printf("Esperava-se ';' erro na linha %d\n", an->numLinha);
         exit(1);
@@ -327,9 +343,7 @@ void compila_programa(estruturaAux *an, TabelaSimbolos *tabela) {
 
     fprintf(an->saida, "INPP\n");
 
-    tabela->escopoAtual++;
     compila_bloco(an, tabela);
-    descartaEscopo(tabela);
 
     t = proximoToken(an);
     if (t != ponto) {
@@ -377,11 +391,13 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
 
     if (t == tipo) {
         Natureza n = pegaNatureza(t);
-        char *tipo = qualId(an->palavraAtual);
+        char tipo[MAX_COMPRIMENTO];
+        strcpy(tipo, an->palavraAtual);
         t = proximoToken(an);
 
         while (t == identificador) {
-            char *nome = qualId(an->palavraAtual);
+            char nome[MAX_COMPRIMENTO];
+            strcpy(nome, an->palavraAtual);
             insereSimbolo(tabela, nome, tipo, n, 0);
             t = proximoToken(an);
             if (t != igual) {
@@ -419,7 +435,7 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                 tamanho *= 2;
                 nomes = (char **)realloc(nomes, tamanho * sizeof(char *)); // Realoca memória para o dobro de nomes
             }
-            nomes[contador] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
+            nomes[contador] = (char *)malloc(MAX_COMPRIMENTO * sizeof(char)); // Aloca memória para cada nome
             strcpy(nomes[contador], qualId(an->palavraAtual));
             contador++;
             while (1) {
@@ -431,7 +447,11 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
                         printf("Esperava-se um identificador apos ','! erro no bloco na linha %d\n", an->numLinha);
                         exit(1);
                     }
-                    nomes[contador] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
+                    if (contador >= tamanho) {
+                        tamanho *= 2;
+                        nomes = realloc(nomes, tamanho * sizeof(*nomes));
+                    }
+                    nomes[contador] = (char *)malloc(MAX_COMPRIMENTO * sizeof(char)); // Aloca memória para cada nome
                     strcpy(nomes[contador], qualId(an->palavraAtual));
                     contador++;
                 } else {
@@ -451,11 +471,13 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
             }
             char *tipo = qualId(an->palavraAtual);
             for (int i = 0; i < contador; i++) {
-                insereSimbolo(tabela, nomes[i], tipo, n, 0);
+                insereSimbolo(tabela, nomes[i], tipo, n, numVars + i);
             }
 
+            for (int i = 0; i < contador; i++) free(nomes[i]);
             fprintf(an->saida, "AMEM %d\n", contador);
             numVars += contador;
+            contador = 0;
 
             t = proximoToken(an);
             if (t != pontoevirgula) {
@@ -471,89 +493,58 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
         free(nomes);
     }
 
-    while (t == procedimento || t == funcao) {
-        int rotuloPula = contadorRotulo++;
-        int rotuloEntrada = contadorRotulo++;
-
-        fprintf(an->saida, "DSVR L%d\n", rotuloPula);
-
-        if (t == procedimento){
-            Natureza n = pegaNatureza(t);
+    if (t == procedimento || t == funcao) {
+        int rotuloPrincipal = contadorRotulo++;
+        fprintf(an->saida, "DSVR L%d\n", rotuloPrincipal);
+        while (t == procedimento || t == funcao) {
+            Natureza natureza = t == funcao ? FUNCAO : PROCEDIMENTO;
             t = proximoToken(an);
-            if(t != identificador){
-                printf("Esperava-se um identificador apos 'procedure'! erro no bloco na linha %d\n", an->numLinha);
+            if (t != identificador) {
+                fprintf(stderr, "Linha %d: esperava-se nome do procedimento.\n", an->numLinha);
                 exit(1);
             }
-            char *nome = qualId(an->palavraAtual);
-            insereSimbolo(tabela, nome, "Nulo", n, rotuloEntrada);
+            insereSimbolo(tabela, an->palavraAtual, "Nulo", natureza, contadorRotulo++);
+            Simbolo *proc = tabela->topo;
+            proc->nivelCorpo = tabela->escopoAtual + 1;
+            tabela->escopoAtual++;
             t = proximoToken(an);
-            if(t == abreparenteses){
-                tabela->escopoAtual++;
-                compila_parametros_formais(an, tabela);
-                descartaEscopo(tabela);
+            if (t == abreparenteses)
+                compila_parametros_formais(an, &t, tabela, proc);
+            if (natureza == FUNCAO) {
+                if (t != doispontos) {
+                    fprintf(stderr, "Linha %d: esperava-se ':' e o tipo de retorno da funcao.\n", an->numLinha);
+                    exit(1);
+                }
+                t = proximoToken(an);
+                if (t != identificador || strlen(an->palavraAtual) >= sizeof(proc->tipo)) {
+                    fprintf(stderr, "Linha %d: tipo de retorno invalido.\n", an->numLinha);
+                    exit(1);
+                }
+                strcpy(proc->tipo, an->palavraAtual);
                 t = proximoToken(an);
             }
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos 'procedure'! erro no bloco na linha %d\n", an->numLinha);
+                fprintf(stderr, "Linha %d: esperava-se ';' antes do corpo do procedimento.\n", an->numLinha);
                 exit(1);
             }
-            fprintf(an->saida, "L%d:NADA\n", rotuloEntrada);
-            tabela->escopoAtual++;
+            if (numSubprogramasAtivos >= 100) {
+                fprintf(stderr, "Linha %d: subprogramas aninhados demais.\n", an->numLinha);
+                exit(1);
+            }
+            subprogramasAtivos[numSubprogramasAtivos++] = proc;
+            fprintf(an->saida, "L%d: NADA\n", proc->endereco);
             compila_bloco(an, tabela);
+            numSubprogramasAtivos--;
+            fprintf(an->saida, "RTPR %d, %d\n", proc->nivelCorpo, proc->numParametros);
             descartaEscopo(tabela);
             t = proximoToken(an);
             if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos bloco do 'procedure'! erro no bloco na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            t = proximoToken(an);
-        } else {
-            Natureza n = pegaNatureza(t);
-            t = proximoToken(an);
-            if(t != identificador){
-                printf("Esperava-se um identificador apos 'function'! erro no bloco na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            char *nome = qualId(an->palavraAtual);
-            t = proximoToken(an);
-            if(t == abreparenteses){
-                tabela->escopoAtual++;
-                compila_parametros_formais(an, tabela);
-                descartaEscopo(tabela);
-                t = proximoToken(an);
-            }
-            if (t != doispontos) {
-                printf("Esperava-se ':' apos 'function'! erro no bloco na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            t = proximoToken(an);
-            if(t != identificador){
-                printf("Esperava-se um identificador apos ':'! erro no bloco na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            char *tipo = qualId(an->palavraAtual);
-            insereSimbolo(tabela, nome, tipo, n, 0);
-            t = proximoToken(an);
-            if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos 'function'! erro no bloco na linha %d\n", an->numLinha);
-                exit(1);
-            }
-
-            fprintf(an->saida, "L%d:NADA\n", rotuloEntrada);
-
-            tabela->escopoAtual++;
-            compila_bloco(an, tabela);
-            descartaEscopo(tabela);
-            t = proximoToken(an);
-            if (t != pontoevirgula) {
-                printf("Esperava-se ';' apos bloco do 'function'! erro no bloco na linha %d\n", an->numLinha);
+                fprintf(stderr, "Linha %d: esperava-se ';' apos o procedimento.\n", an->numLinha);
                 exit(1);
             }
             t = proximoToken(an);
         }
-
-        fprintf(an->saida, "L%d:NADA\n", rotuloPula);
-
+        fprintf(an->saida, "L%d: NADA\n", rotuloPrincipal);
     }
 
     if (t != inicio) {
@@ -580,150 +571,104 @@ void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela) {
 
 }
 
-void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela){
-    token t;
-    do {
-        t = proximoToken(an);
-
-        if (t == variavel) {
-            t = proximoToken(an);
-        }
-
-        int tamanho = 10; // valor provisório
-        char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 10 nomes
-        int contador = 0;
-        if (t == identificador) {
-            nomes[contador] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
-            strcpy(nomes[contador], qualId(an->palavraAtual));
-            contador++;
-            t = proximoToken(an);
-            while (t == virgula) {
-                if (contador >= tamanho) {
-                    nomes = (char **)realloc(nomes, tamanho * sizeof(char *)); // Realoca memória para o dobro de nomes
-                }
-                t = proximoToken(an);
-                if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','! erro nos parametros formais na linha %d\n", an->numLinha);
+/* Com tres campos de controle, o ultimo parametro fica em -4. */
+void compila_parametros_formais(estruturaAux *an, token *t, TabelaSimbolos *tabela, Simbolo *proc) {
+    Simbolo *parametros[MAX_PARAMETROS];
+    *t = proximoToken(an);
+    if (*t != fechaparenteses) {
+        for (;;) {
+            int referencia = (*t == variavel);
+            if (referencia) *t = proximoToken(an);
+            int primeiro = proc->numParametros;
+            for (;;) {
+                if (*t != identificador || proc->numParametros >= MAX_PARAMETROS) {
+                    fprintf(stderr, "Linha %d: parametro invalido ou limite de %d parametros excedido.\n", an->numLinha, MAX_PARAMETROS);
                     exit(1);
                 }
-                nomes[contador] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
-                strcpy(nomes[contador], qualId(an->palavraAtual));
-                contador++;
-                t = proximoToken(an);
+                insereSimbolo(tabela, an->palavraAtual, "", PARAMETRO, 0);
+                Simbolo *param = tabela->topo;
+                param->porReferencia = referencia;
+                int i = proc->numParametros++;
+                parametros[i] = param;
+                proc->parametrosPorReferencia[i] = referencia;
+                *t = proximoToken(an);
+                if (*t != virgula) break;
+                *t = proximoToken(an);
             }
-            if (t != doispontos) {
-                printf("Esperava-se ':' apos identificadores! erro nos parametros formais na linha %d\n", an->numLinha);
+            if (*t != doispontos) {
+                fprintf(stderr, "Linha %d: esperava-se ':' nos parametros.\n", an->numLinha);
                 exit(1);
             }
-            t = proximoToken(an);
-            if (t != identificador) {
-                printf("Esperava-se um identificador! erro nos parametros formais na linha %d\n", an->numLinha);
+            *t = proximoToken(an);
+            if (*t != identificador || strlen(an->palavraAtual) >= sizeof(parametros[0]->tipo)) {
+                fprintf(stderr, "Linha %d: tipo de parametro invalido.\n", an->numLinha);
                 exit(1);
             }
-            char *tipo = qualId(an->palavraAtual);
-            for (int i = 0; i < contador; i++) {
-                insereSimbolo(tabela, nomes[i], tipo, PARAMETRO, 0);
-            }
-
-            for (int i = 0; i < contador; i++) {
-                free(nomes[i]);
-            }
-            free(nomes);
-
-            t = proximoToken(an);
+            for (int i = primeiro; i < proc->numParametros; i++)
+                strcpy(parametros[i]->tipo, an->palavraAtual);
+            *t = proximoToken(an);
+            if (*t != pontoevirgula) break;
+            *t = proximoToken(an);
         }
-
-        else if (t == funcao) {
-            Natureza n = pegaNatureza(t);
-            t = proximoToken(an);
-            if (t != identificador) {
-                printf("Esperava-se um identificador apos 'function'! erro nos parametros formais na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            int tamanho = 20; // valor provisório
-            char **nomes = (char **)malloc(tamanho * sizeof(char *)); // Aloca memória para 20 nomes
-            for (int i = 0; i < tamanho; i++) {
-                nomes[i] = (char *)malloc(50 * sizeof(char)); // Aloca memória para cada nome
-            }
-            int contador = 0;
-
-            strcpy(nomes[contador], qualId(an->palavraAtual));
-            contador++;
-            t = proximoToken(an);
-            while (t == virgula) {
-                if (contador >= tamanho) {
-                    tamanho *= 2;
-                    nomes = (char **)realloc(nomes, tamanho * sizeof(char *)); // Realoca memória para o dobro de nomes
-                }
-                t = proximoToken(an);
-                if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','! erro nos parametros formais na linha %d\n", an->numLinha);
-                    exit(1);
-                }
-                strcpy(nomes[contador], qualId(an->palavraAtual));
-                contador++;
-                t = proximoToken(an);
-            }
-            if (t != doispontos) {
-                printf("Esperava-se ':' apos identificadores! erro nos parametros formais na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            t = proximoToken(an);
-            if (t != identificador) {
-                printf("Esperava-se um identificador apos ':'! erro nos parametros formais na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            char *tipo = qualId(an->palavraAtual);
-            for (int i = 0; i < contador; i++) {
-                insereSimbolo(tabela, nomes[i], tipo, n, 0);
-            }
-
-            for (int i = 0; i < tamanho; i++) {
-                free(nomes[i]);
-            }
-            free(nomes);
-
-            t = proximoToken(an);
-        }
-
-        else if (t == procedimento) {
-            Natureza n = pegaNatureza(t);
-            t = proximoToken(an);
-            if (t != identificador) {
-                printf("Esperava-se um identificador apos 'procedure'! erro nos parametros formais na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            char *nome = qualId(an->palavraAtual);
-            insereSimbolo(tabela, nome, "Nulo", n, 0);
-            t = proximoToken(an);
-            while (t == virgula) {
-                t = proximoToken(an);
-                if (t != identificador) {
-                    printf("Esperava-se um identificador apos ','! erro nos parametros formais na linha %d\n", an->numLinha);
-                    exit(1);
-                }
-                char *nome = qualId(an->palavraAtual);
-                insereSimbolo(tabela, nome, "Nulo", n, 0);
-                t = proximoToken(an);
-            }
-        }
-
-        else {
-            printf("Esperava-se um parametro formal! erro nos parametros formais na linha %d\n", an->numLinha);
-            exit(1);
-        }
-
-    } while (t == pontoevirgula);
-
-    if (t != fechaparenteses) {
-        printf("Esperava-se ')' apos o fim dos parametros! erro nos parametros formais na linha %d\n", an->numLinha);
+    }
+    if (*t != fechaparenteses) {
+        fprintf(stderr, "Linha %d: esperava-se ')' nos parametros.\n", an->numLinha);
         exit(1);
     }
+    for (int i = 0; i < proc->numParametros; i++)
+        parametros[i]->endereco = i - proc->numParametros - 3;
+    *t = proximoToken(an);
+}
+
+static void compila_chamada(estruturaAux *an, token *t, TabelaSimbolos *tabela, Simbolo *proc) {
+    int quantidade = 0;
+    /* O resultado fica antes dos argumentos e sobrevive ao RTPR. */
+    if (proc->natureza == FUNCAO) fprintf(an->saida, "AMEM 1\n");
+    if (*t == abreparenteses) {
+        *t = proximoToken(an);
+        if (*t != fechaparenteses) {
+            for (;;) {
+                if (quantidade >= proc->numParametros) {
+                    fprintf(stderr, "Linha %d: argumentos demais para '%s'.\n", an->numLinha, proc->nome);
+                    exit(1);
+                }
+                if (proc->parametrosPorReferencia[quantidade]) {
+                    if (*t != identificador) {
+                        fprintf(stderr, "Linha %d: parametro 'var' exige uma variavel.\n", an->numLinha);
+                        exit(1);
+                    }
+                    Simbolo *arg = achaSimbolo(an, tabela, an->palavraAtual);
+                    if (arg->natureza != VARIAVEL && arg->natureza != PARAMETRO) {
+                        fprintf(stderr, "Linha %d: argumento por referencia nao e variavel.\n", an->numLinha);
+                        exit(1);
+                    }
+                    /* Repassar uma referencia exige carregar o endereco ja guardado. */
+                    fprintf(an->saida, "%s %d, %d\n", arg->porReferencia ? "CRVL" : "CREN", arg->escopo, arg->endereco);
+                    *t = proximoToken(an);
+                } else {
+                    compila_expressao(an, t, tabela);
+                }
+                quantidade++;
+                if (*t != virgula) break;
+                *t = proximoToken(an);
+            }
+        }
+        if (*t != fechaparenteses) {
+            fprintf(stderr, "Linha %d: esperava-se ')' apos os argumentos; parametro 'var' aceita apenas variavel.\n", an->numLinha);
+            exit(1);
+        }
+        *t = proximoToken(an);
+    }
+    if (quantidade != proc->numParametros) {
+        fprintf(stderr, "Linha %d: '%s' espera %d argumentos, recebeu %d.\n", an->numLinha, proc->nome, proc->numParametros, quantidade);
+        exit(1);
+    }
+    fprintf(an->saida, "CHPR L%d, %d\n", proc->endereco, proc->nivelCorpo);
 }
 
 void compila_comando(estruturaAux *an, token *t, TabelaSimbolos *tabela){
     while (*t == numero){
-        fprintf(an->saida, "L%d:NADA\n", rotuloDoLabel(qualNumero(an->palavraAtual)));
+        fprintf(an->saida, "L%d: NADA\n", rotuloDoLabel(qualNumero(an->palavraAtual)));
         *t = proximoToken(an);
         if (*t != doispontos){
             printf("Esperava-se ':' apos numero! erro no comando na linha %d\n", an->numLinha);
@@ -735,43 +680,23 @@ void compila_comando(estruturaAux *an, token *t, TabelaSimbolos *tabela){
 }
 
 void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabela){
-    if (*t == identificador){
-        char *nome = qualId(an->palavraAtual);
+    if (*t == identificador) {
+        Simbolo *s = achaSimbolo(an, tabela, an->palavraAtual);
         *t = proximoToken(an);
-        if (*t == abrecolchetes){
+        if (s->natureza == PROCEDIMENTO) {
+            compila_chamada(an, t, tabela, s);
+        } else if (s->natureza == FUNCAO && *t == atribuicao && funcaoAtiva(s)) {
             *t = proximoToken(an);
             compila_expressao(an, t, tabela);
-            while (*t == virgula){
-                *t = proximoToken(an);
-                compila_expressao(an, t, tabela);
-            }
-            if (*t != fechacolchetes){
-                printf("Esperava-se um ']' apos a expressao! erro no comando sem rotulo na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            *t = proximoToken(an);
-        }
-        if (*t == atribuicao){
-            Simbolo *s = achaSimbolo(an, tabela, nome);
+            /* Tres campos de controle, n argumentos e uma celula de resultado. */
+            fprintf(an->saida, "ARMZ %d, %d\n", s->nivelCorpo, -s->numParametros - 4);
+        } else if ((s->natureza == VARIAVEL || s->natureza == PARAMETRO) && *t == atribuicao) {
             *t = proximoToken(an);
             compila_expressao(an, t, tabela);
-            if (s->natureza == VARIAVEL || s->natureza == PARAMETRO)
-                fprintf(an->saida, "ARMZ %d, %d\n", s->escopo, s->endereco);
-        }
-        else if (*t == abreparenteses) {
-            do {
-                *t = proximoToken(an);
-                compila_expressao(an, t, tabela);
-            } while (*t == virgula);
-            if (*t != fechaparenteses) {
-                printf("Esperava-se ')'!\n");
-                exit(1);
-            }
-            *t = proximoToken(an);
-        }
-        else {
-            // printf("Comando invalido apos identificador! erro no comando sem rotulo na linha %d\n", an->numLinha);
-            // exit(1);
+            fprintf(an->saida, "%s %d, %d\n", s->porReferencia ? "ARMI" : "ARMZ", s->escopo, s->endereco);
+        } else {
+            fprintf(stderr, "Linha %d: esperava-se atribuicao ou chamada de procedimento; vetores nao suportados.\n", an->numLinha);
+            exit(1);
         }
     }
     else if (*t == vapara){
@@ -793,6 +718,9 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
             compila_comando(an, t, tabela);
             if (*t == pontoevirgula) {
                 *t = proximoToken(an);
+            } else if (*t != fim) {
+                fprintf(stderr, "Linha %d: esperava-se ';' ou 'end'.\n", an->numLinha);
+                exit(1);
             }
         }
         *t = proximoToken(an);
@@ -836,84 +764,93 @@ void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabe
         fprintf(an->saida, "DSVR L%d\n", rotuloInicio);      // volta para testar de novo
         fprintf(an->saida, "L%d: NADA\n", rotuloFim);
     }
-}
-
-void compila_expressao(estruturaAux *an, token *t, TabelaSimbolos *tabela) {
-    compila_expressao_simples(an, t, tabela);
-
-    if (*t == igual    || *t == diferente ||
-        *t == menor    || *t == menorouigual ||
-        *t == maior    || *t == maiorouigual) {
-
-        *t = proximoToken(an);
-
-        compila_expressao_simples(an, t, tabela);
+    else if (*t != pontoevirgula && *t != fim && *t != senao) {
+        fprintf(stderr, "Linha %d: comando invalido.\n", an->numLinha);
+        exit(1);
     }
 }
 
-void compila_expressao_simples(estruturaAux *an, token *t, TabelaSimbolos *tabela){
-    if (*t == mais || *t == menos){
+/* Cada expressao deixa exatamente um valor na pilha. */
+void compila_expressao(estruturaAux *an, token *t, TabelaSimbolos *tabela) {
+    compila_expressao_simples(an, t, tabela);
+    if (*t == igual || *t == diferente || *t == menor ||
+        *t == menorouigual || *t == maior || *t == maiorouigual) {
+        token operador = *t;
+        *t = proximoToken(an);
+        compila_expressao_simples(an, t, tabela);
+        const char *instrucao = NULL;
+        switch (operador) {
+            case igual: instrucao = "CMIG"; break;
+            case diferente: instrucao = "CMDG"; break;
+            case menor: instrucao = "CMME"; break;
+            case maior: instrucao = "CMMA"; break;
+            case menorouigual: instrucao = "CMEG"; break;
+            case maiorouigual: instrucao = "CMAG"; break;
+            default: exit(1);
+        }
+        fprintf(an->saida, "%s\n", instrucao);
+    }
+}
+
+void compila_expressao_simples(estruturaAux *an, token *t, TabelaSimbolos *tabela) {
+    token sinal = *t;
+    if (sinal == mais || sinal == menos) {
+        if (sinal == menos) fprintf(an->saida, "CRCT 0\n");
         *t = proximoToken(an);
     }
     compila_termo(an, t, tabela);
-    while (*t == mais || *t == menos || *t == ou){
+    if (sinal == menos) fprintf(an->saida, "SUBT\n");
+    while (*t == mais || *t == menos || *t == ou) {
+        token operador = *t;
         *t = proximoToken(an);
         compila_termo(an, t, tabela);
+        fprintf(an->saida, "%s\n", operador == mais ? "SOMA" : operador == menos ? "SUBT" : "DISJ");
     }
 }
 
-void compila_termo(estruturaAux *an, token *t, TabelaSimbolos *tabela){
+void compila_termo(estruturaAux *an, token *t, TabelaSimbolos *tabela) {
     compila_fator(an, t, tabela);
-
-    while (*t == vezes || *t == dividir || *t == e){
-
+    while (*t == vezes || *t == dividir || *t == e) {
+        token operador = *t;
         *t = proximoToken(an);
         compila_fator(an, t, tabela);
+        fprintf(an->saida, "%s\n", operador == vezes ? "MULT" : operador == dividir ? "DIVI" : "CONJ");
     }
 }
 
-void compila_fator(estruturaAux *an, token *t, TabelaSimbolos *tabela){
-    if (*t == identificador){
+void compila_fator(estruturaAux *an, token *t, TabelaSimbolos *tabela) {
+    if (*t == identificador) {
+        Simbolo *s = achaSimbolo(an, tabela, an->palavraAtual);
         *t = proximoToken(an);
-        if (*t == abrecolchetes){
-            *t = proximoToken(an);
-            compila_expressao(an, t, tabela);
-            while (*t == virgula){
-                *t = proximoToken(an);
-                compila_expressao(an, t, tabela);
-            }
-            if (*t != fechacolchetes){
-                printf("Esperava-se um ']' apos a expressao! erro no fator na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            *t = proximoToken(an);
+        if (s->natureza == FUNCAO) {
+            compila_chamada(an, t, tabela, s);
+        } else if (s->natureza == VARIAVEL || s->natureza == PARAMETRO) {
+            fprintf(an->saida, "%s %d, %d\n", s->porReferencia ? "CRVI" : "CRVL", s->escopo, s->endereco);
+        } else {
+            fprintf(stderr, "Linha %d: esperava-se variavel ou chamada de funcao.\n", an->numLinha);
+            exit(1);
         }
-        else if (*t == abreparenteses) {
-            do {
-                *t = proximoToken(an);
-                compila_expressao(an, t, tabela);
-            } while (*t == virgula);
-            if (*t != fechaparenteses) {
-                printf("Esperava-se ')'! erro no fator na linha %d\n", an->numLinha);
-                exit(1);
-            }
-            *t = proximoToken(an);
+        if (*t == abrecolchetes || *t == abreparenteses) {
+            fprintf(stderr, "Linha %d: acesso indexado ou chamada invalida.\n", an->numLinha);
+            exit(1);
         }
-    } else if (*t == abreparenteses){
+    } else if (*t == numero) {
+        fprintf(an->saida, "CRCT %d\n", qualNumero(an->palavraAtual));
+        *t = proximoToken(an);
+    } else if (*t == abreparenteses) {
         *t = proximoToken(an);
         compila_expressao(an, t, tabela);
-        if(*t != fechaparenteses){
-            printf("Esperava-se ')' apos expressao! erro no fator na linha %d\n", an->numLinha);
+        if (*t != fechaparenteses) {
+            fprintf(stderr, "Linha %d: esperava-se ')'.\n", an->numLinha);
             exit(1);
         }
         *t = proximoToken(an);
-    } else if (*t == nao){
+    } else if (*t == nao) {
         *t = proximoToken(an);
         compila_fator(an, t, tabela);
-    } else if (*t == numero){       
-        *t = proximoToken(an);
+        fprintf(an->saida, "NEGA\n");
     } else {
-        printf("Esperava-se um numero! erro no fator na linha %d\n", an->numLinha);
+        fprintf(stderr, "Linha %d: esperava-se numero, variavel ou expressao entre parenteses.\n", an->numLinha);
         exit(1);
     }
 }

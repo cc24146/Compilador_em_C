@@ -29,7 +29,9 @@ typedef struct {    // struct para não ter que mandar tudo individualmente por 
     int numLinha;
 } estruturaAux;
 
-typedef enum { VARIAVEL, PROCEDIMENTO, FUNCAO, PARAMETRO } Natureza;
+#define MAX_PARAMETROS 64
+
+typedef enum { VARIAVEL, PROCEDIMENTO, FUNCAO, PARAMETRO, TIPO } Natureza;
 
 typedef struct Simbolo {
     char nome[50];
@@ -37,6 +39,10 @@ typedef struct Simbolo {
     Natureza natureza;
     int escopo;
     int endereco;
+    int porReferencia;
+    int nivelCorpo;
+    int numParametros;
+    int parametrosPorReferencia[MAX_PARAMETROS];
     struct Simbolo *prox;
 } Simbolo;
 
@@ -55,7 +61,7 @@ char *separaToken(estruturaAux *an);
 void compila_programa(estruturaAux *an, TabelaSimbolos *tabela);  
 token proximoToken(estruturaAux *an);
 void compila_bloco(estruturaAux *an, TabelaSimbolos *tabela);
-void compila_parametros_formais(estruturaAux *an, TabelaSimbolos *tabela);
+void compila_parametros_formais(estruturaAux *an, token *t, TabelaSimbolos *tabela, Simbolo *proc);
 void compila_comando(estruturaAux *an, token *t, TabelaSimbolos *tabela);
 void compila_comando_sem_rotulo(estruturaAux *an, token *t, TabelaSimbolos *tabela);
 void compila_expressao(estruturaAux *an, token *t, TabelaSimbolos *tabela);
